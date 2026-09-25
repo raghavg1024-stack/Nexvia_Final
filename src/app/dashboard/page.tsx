@@ -69,13 +69,13 @@ const quickActions = [
     icon: "⬟",
     gradient: "from-violet-500 to-purple-500",
   },
-  {
-    href: "/applications",
-    title: "Application Tracker",
-    description: "Track all your job and scholarship applications.",
-    icon: "⌖",
-    gradient: "from-cyan-500 to-blue-500",
-  },
+  // {
+  //   href: "/applications",
+  //   title: "Application Tracker",
+  //   description: "Track all your job and scholarship applications.",
+  //   icon: "⌖",
+  //   gradient: "from-cyan-500 to-blue-500",
+  // },
   {
     href: "/academia",
     title: "Academia Workspace",
