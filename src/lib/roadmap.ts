@@ -1310,18 +1310,15 @@ export async function ensureMilestones(
 ): Promise<Roadmap | null> {
   const supabase = await createClient();
 
-  const { data: roadmap } = await supabase
-    .from("roadmaps")
-    .select("*")
-    .eq("id", roadmapId)
-    .single();
+  const [{ data: roadmap }, { data: existing }] = await Promise.all([
+    supabase.from("roadmaps").select("*").eq("id", roadmapId).single(),
+    supabase
+      .from("milestones")
+      .select("id, order_index")
+      .eq("roadmap_id", roadmapId),
+  ]);
 
   if (!roadmap) return null;
-
-  const { data: existing } = await supabase
-    .from("milestones")
-    .select("id, order_index")
-    .eq("roadmap_id", roadmapId);
 
   const existingIndexes = new Set(
     (existing ?? []).map((m) => m.order_index as number)
@@ -1354,35 +1351,46 @@ export async function ensureMilestones(
     profile?.learning_style ?? null
   );
 
-  for (let i = 0; i < plan.length; i++) {
-    if (existingIndexes.has(i)) continue;
+  const missingMilestones = plan
+    .map((starter, orderIndex) => ({ starter, orderIndex }))
+    .filter(({ orderIndex }) => !existingIndexes.has(orderIndex));
 
-    const starter = plan[i];
-
-    const { data: milestone } = await supabase
+  if (missingMilestones.length > 0) {
+    const { data: insertedMilestones, error: milestoneInsertError } = await supabase
       .from("milestones")
-      .insert({
-        roadmap_id: roadmapId,
-        title: starter.title,
-        description: starter.description,
-        order_index: i,
-        status: i === 0 ? "in_progress" : "locked",
-      })
-      .select("id")
-      .single();
+      .insert(
+        missingMilestones.map(({ starter, orderIndex }) => ({
+          roadmap_id: roadmapId,
+          title: starter.title,
+          description: starter.description,
+          order_index: orderIndex,
+          status: orderIndex === 0 ? "in_progress" : "locked",
+        })),
+      )
+      .select("id, order_index");
 
-    if (!milestone) continue;
+    if (milestoneInsertError) return null;
 
-    await supabase.from("courses").insert(
-      starter.courses.map((course, courseIndex) => ({
-        milestone_id: milestone.id,
+    const milestoneIdByOrder = new Map(
+      (insertedMilestones ?? []).map((milestone) => [milestone.order_index, milestone.id]),
+    );
+    const courseRows = missingMilestones.flatMap(({ starter, orderIndex }) => {
+      const milestoneId = milestoneIdByOrder.get(orderIndex);
+      if (!milestoneId) return [];
+      return starter.courses.map((course, courseIndex) => ({
+        milestone_id: milestoneId,
         title: course.title,
         description: course.description,
         duration_weeks: course.duration_weeks,
         order_index: courseIndex,
-        status: "pending",
-      }))
-    );
+        status: "pending" as const,
+      }));
+    });
+
+    if (courseRows.length > 0) {
+      const { error: courseInsertError } = await supabase.from("courses").insert(courseRows);
+      if (courseInsertError) return null;
+    }
   }
 
   const sequencedRoadmap = await loadRoadmap(supabase, roadmapId);
@@ -1397,10 +1405,11 @@ export async function ensureMilestones(
       const expectedStatus: MilestoneStatus = index === firstIncompleteIndex ? "in_progress" : "locked";
       if (milestone.status === expectedStatus) return;
       await supabase.from("milestones").update({ status: expectedStatus }).eq("id", milestone.id);
+      milestone.status = expectedStatus;
     }),
   );
 
-  return loadRoadmap(supabase, roadmapId);
+  return sequencedRoadmap;
 }
 
 async function milestoneOwnedBy(

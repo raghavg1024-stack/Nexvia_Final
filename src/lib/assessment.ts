@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import {
   ASSESSMENT_QUESTIONS,
@@ -340,9 +341,12 @@ export async function selectCareer(careerId: string, recommendationId: string) {
   const result = await createCareerRoadmap(careerId, recommendationId);
   if (!result.ok) throw new Error(result.message ?? "Could not create the roadmap.");
 
-  try {
-    await grantReward("xp", XP_RULES.career_selected, "Career selected");
-  } catch {}
+  // XP bookkeeping should not delay the learner's transition to the roadmap.
+  after(async () => {
+    try {
+      await grantReward("xp", XP_RULES.career_selected, "Career selected");
+    } catch {}
+  });
 
   revalidatePath("/roadmap");
   redirect("/roadmap");

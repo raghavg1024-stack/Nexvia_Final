@@ -53,16 +53,41 @@ export async function getReadiness(): Promise<CareerReadinessScore | null> {
     } = await supabase.auth.getUser();
     if (!user) return null;
 
+    const [latestResult, profileRes, badgeResult, roadmapResult, interviewResult] = await Promise.all([
+      supabase
+        .from("career_readiness")
+        .select(
+          "technical_skills, communication, projects, resume_quality, interview_readiness, overall, suggestions"
+        )
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("profiles")
+        .select(
+          "xp, level, current_streak_days, full_name, education_level, goals, learning_style, study_hours_per_week"
+        )
+        .eq("id", user.id)
+        .maybeSingle(),
+      supabase.from("user_badges").select("badge_key").eq("user_id", user.id),
+      supabase
+        .from("roadmaps")
+        .select("id")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1),
+      supabase
+        .from("mock_interviews")
+        .select("overall_score")
+        .eq("user_id", user.id)
+        .eq("is_complete", true)
+        .order("completed_at", { ascending: false })
+        .limit(5),
+    ]);
+
     let previous: RawScore | null = null;
-    const { data: latestRow } = await supabase
-      .from("career_readiness")
-      .select(
-        "technical_skills, communication, projects, resume_quality, interview_readiness, overall, suggestions"
-      )
-      .eq("user_id", user.id)
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const latestRow = latestResult.data;
     if (latestRow) {
       previous = {
         technical_skills: latestRow.technical_skills,
@@ -77,27 +102,10 @@ export async function getReadiness(): Promise<CareerReadinessScore | null> {
       };
     }
 
-    const profileRes = await supabase
-      .from("profiles")
-      .select(
-        "xp, level, current_streak_days, full_name, education_level, goals, learning_style, study_hours_per_week"
-      )
-      .eq("id", user.id)
-      .maybeSingle();
     const profile = profileRes.data ?? null;
-
-    const { data: badgeRows } = await supabase
-      .from("user_badges")
-      .select("badge_key")
-      .eq("user_id", user.id);
+    const badgeRows = badgeResult.data;
     const badgesEarned = badgeRows?.length ?? 0;
-
-    const { data: roadmapRows } = await supabase
-      .from("roadmaps")
-      .select("id")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(1);
+    const roadmapRows = roadmapResult.data;
     const roadmapIds = (roadmapRows ?? []).map((row) => row.id);
 
     let completedCourses = 0;
@@ -142,13 +150,7 @@ export async function getReadiness(): Promise<CareerReadinessScore | null> {
     ).length;
     const completeness = Math.round((filled / profileFields.length) * 100);
 
-    const { data: interviewRows } = await supabase
-      .from("mock_interviews")
-      .select("overall_score")
-      .eq("user_id", user.id)
-      .eq("is_complete", true)
-      .order("completed_at", { ascending: false })
-      .limit(5);
+    const interviewRows = interviewResult.data;
     const completedInterviewScores = (interviewRows ?? [])
       .map((row) => Number(row.overall_score))
       .filter((value) => Number.isFinite(value) && value > 0);

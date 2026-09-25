@@ -179,7 +179,11 @@ function MilestoneCard({
 
 export default async function RoadmapPage() {
   let roadmap = await getRoadmap();
-  if (roadmap) roadmap = (await ensureMilestones(roadmap.id)) ?? roadmap;
+  // Existing roadmaps are already fully materialized. Avoid repeating the
+  // generation queries on every navigation; retain recovery for legacy rows.
+  if (roadmap && roadmap.milestones.length === 0) {
+    roadmap = (await ensureMilestones(roadmap.id)) ?? roadmap;
+  }
 
   if (!roadmap) {
     return (

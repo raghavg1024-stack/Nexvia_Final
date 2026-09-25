@@ -157,24 +157,15 @@ async function fetchCachedJobs(
   category: string
 ): Promise<{ jobs: RemoteJob[]; lastSyncedAt: string | null }> {
   const supabase = await createClient();
-  const [{ data: rows }, { data: latest }] = await Promise.all([
-    supabase
-      .from("job_listings")
-      .select("*")
-      .eq("category", category)
-      .order("fetched_at", { ascending: false })
-      .limit(200),
-    supabase
-      .from("job_listings")
-      .select("fetched_at")
-      .eq("category", category)
-      .order("fetched_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-  ]);
+  const { data: rows } = await supabase
+    .from("job_listings")
+    .select("*")
+    .eq("category", category)
+    .order("fetched_at", { ascending: false })
+    .limit(200);
 
   const cached = (rows ?? []).map(rowToJob);
-  return { jobs: cached, lastSyncedAt: latest?.fetched_at ?? null };
+  return { jobs: cached, lastSyncedAt: rows?.[0]?.fetched_at ?? null };
 }
 
 export async function getJobsForCareer(
