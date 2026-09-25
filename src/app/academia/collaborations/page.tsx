@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Users } from "lucide-react";
 import { Reveal } from "@/app/_components/motion";
 import { CollaborationsClient } from "./collaborations-client";
 import { getCollaborations } from "./actions";

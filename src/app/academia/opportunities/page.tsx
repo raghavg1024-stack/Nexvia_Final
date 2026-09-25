@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Reveal, Stagger, StaggerItem } from "@/app/_components/motion";
-import { BookOpen, Briefcase, Code, FlaskConical, Users, UserCheck, Calendar, Building2, MapPin, DollarSign, Clock, ArrowRight, ExternalLink } from "lucide-react";
+import { BookOpen, Briefcase, Code, FlaskConical, Users, UserCheck, Calendar, Building2, MapPin, DollarSign, Clock, ArrowRight, ExternalLink, Check } from "lucide-react";
 
 const TYPE_CONFIG = {
   faculty_internship: { label: "Faculty Internship", icon: Briefcase, color: "bg-blue-500/10 text-blue-400" },

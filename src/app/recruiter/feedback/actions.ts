@@ -65,13 +65,13 @@ export async function submitFeedbackAction(
     .eq("id", job_application_id)
     .single();
 
-  if (!application) return { error: "Application not found" };
+  if (!application || !application.jobs) return { error: "Application not found" };
 
   const { data: membership } = await supabase
     .from("company_members")
     .select("company_id")
     .eq("user_id", user.id)
-    .eq("company_id", (application.jobs as any).company_id)
+    .eq("company_id", application.jobs.company_id)
     .single();
 
   if (!membership) return { error: "Not authorized to provide feedback for this application" };

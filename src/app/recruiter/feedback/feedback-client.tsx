@@ -6,8 +6,25 @@ import { ArrowLeft, Star, Edit, Check, X, MessageSquare, Plus } from "lucide-rea
 import { Reveal, Stagger, StaggerItem } from "@/app/_components/motion";
 import { submitFeedbackAction } from "./actions";
 
+interface ApplicationForFeedback {
+  id: string;
+  status: string;
+  applied_at: string;
+  profiles: {
+    id: string | null;
+    full_name: string | null;
+    email: string | null;
+    avatar_url: string | null;
+  } | null;
+  jobs: {
+    id: string;
+    title: string;
+    company_id: string;
+  } | null;
+}
+
 interface FeedbackClientProps {
-  initialApplications: any[];
+  initialApplications: ApplicationForFeedback[];
   hasMembership: boolean;
 }
 
@@ -47,7 +64,7 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function FeedbackCard({ application, onSubmitFeedback }: { application: any; onSubmitFeedback: (app: any) => void }) {
+function FeedbackCard({ application, onSubmitFeedback }: { application: ApplicationForFeedback; onSubmitFeedback: (app: ApplicationForFeedback) => void }) {
   const [showForm, setShowForm] = useState(false);
   const [formState, formAction, formPending] = useActionState(submitFeedbackAction, { error: null });
   const [ratings, setRatings] = useState({
@@ -141,7 +158,7 @@ function FeedbackCard({ application, onSubmitFeedback }: { application: any; onS
             </label>
             <label className="flex items-center gap-2 text-sm text-slate-300">
               <input name="is_public" type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} className="rounded border-line" />
-              Show on student's public portfolio
+              Show on student&apos;s public portfolio
             </label>
           </div>
           <div className="flex gap-3">

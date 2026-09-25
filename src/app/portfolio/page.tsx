@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Code } from "lucide-react";
 import { Reveal } from "@/app/_components/motion";
 import { PortfolioClient } from "./portfolio-client";
 import { getPortfolioItems } from "./actions";

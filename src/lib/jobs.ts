@@ -339,15 +339,76 @@ export async function getEligibleJobsAndScholarships(userId: string) {
   return { jobs: rankedJobs, scholarships: rankedScholarships };
 }
 
-export async function applyToJob(jobId: string, matchScore: number) {
+export async function applyToJob(jobId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not logged in");
 
+  // Fetch job details
+  const { data: job, error: jobError } = await supabase
+    .from("jobs")
+    .select("*")
+    .eq("id", jobId)
+    .single();
+
+  if (jobError || !job) throw new Error("Job not found");
+
+  // Fetch student profile for match calculation
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile) throw new Error("Profile not found");
+
+  // Fetch assessment for additional skills
+  let studentSkills: string[] = Array.isArray(profile.skill_tags) ? profile.skill_tags : [];
+  const { data: assessment } = await supabase
+    .from("assessments")
+    .select("responses")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (assessment && assessment.responses) {
+    const skillsResponse = (assessment.responses as Array<{ question_id: string; answer: unknown }>).find((r) => r.question_id === "skills_2");
+    if (skillsResponse && Array.isArray(skillsResponse.answer)) {
+      studentSkills = [...new Set([...studentSkills, ...skillsResponse.answer])];
+    }
+  }
+
+  // Fetch roadmap for career title
+  const { data: roadmap } = await supabase
+    .from("roadmaps")
+    .select("career_title")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  // Calculate match score server-side using calculateJobMatch
+  const matchingProfile = { 
+    ...profile, 
+    skill_tags: studentSkills,
+    cgpa: profile.cgpa ? Number(profile.cgpa) : 0,
+    current_percentage: profile.current_percentage ? Number(profile.current_percentage) : 0,
+  };
+
+  const matchResult = calculateJobMatch({
+    profile: matchingProfile,
+    requiredSkills: Array.isArray(job.required_skills) ? job.required_skills : [],
+    minimumCgpa: job.min_cgpa === null ? null : Number(job.min_cgpa),
+    minimumPercentage: job.min_percentage === null ? null : Number(job.min_percentage),
+    eligibleMajors: Array.isArray(job.eligible_majors) ? job.eligible_majors : [],
+    title: job.title,
+    careerTitle: roadmap?.career_title ?? null,
+  });
+
   const { error } = await supabase.from("job_applications").insert({
     job_id: jobId,
     user_id: user.id,
-    match_score: matchScore,
+    match_score: matchResult.matchScore,
+    match_score_breakdown: matchResult.breakdown,
     status: "pending"
   });
 

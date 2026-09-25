@@ -4,6 +4,7 @@ import { levelFromXp, xpForLevel } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 import { Reveal, Stagger, StaggerItem } from "../_components/motion";
 import HowItWorks, { type HowItWorksStep } from "@/components/ui/how-it-works";
+import { NotificationBadge } from "@/components/ui/notification-badge";
 
 const quickActions = [
   {
@@ -186,6 +187,7 @@ export default async function DashboardPage() {
     message: string;
     created_at: string;
   }[] = [];
+  let unreadNotifications = 0;
 
   try {
     const supabase = await createClient();
@@ -200,6 +202,7 @@ export default async function DashboardPage() {
         { data: a },
         { data: readinessRow },
         { data: familyNotes },
+        { count: unreadCount },
       ] = await Promise.all([
         supabase
           .from("profiles")
@@ -230,15 +233,21 @@ export default async function DashboardPage() {
           .eq("student_user_id", user.id)
           .order("created_at", { ascending: false })
           .limit(3),
+        supabase
+          .from("notifications")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .eq("read", false),
       ]);
       profile = p;
       transactions = t ?? [];
       assessment = a;
       readiness = readinessRow ?? null;
       encouragements = familyNotes ?? [];
+      unreadNotifications = unreadCount ?? 0;
     }
   } catch {}
-
+  
   if (!user) {
     redirect("/login");
   }
@@ -262,12 +271,17 @@ export default async function DashboardPage() {
   return (
     <div className="relative mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6">
       <Reveal>
-        <h1 className="mt-2 font-display text-3xl uppercase tracking-tight text-foreground">
-          Welcome back, {firstName}
-        </h1>
-        <p className="mt-2 text-slate-400">
-          Here is how your career journey is going today.
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="mt-2 font-display text-3xl uppercase tracking-tight text-foreground">
+              Welcome back, {firstName}
+            </h1>
+            <p className="mt-2 text-slate-400">
+              Here is how your career journey is going today.
+            </p>
+          </div>
+          <NotificationBadge count={unreadNotifications} />
+        </div>
       </Reveal>
 
       {/* Stats row */}

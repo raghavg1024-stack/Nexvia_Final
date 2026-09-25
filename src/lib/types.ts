@@ -317,9 +317,18 @@ export interface JobApplication {
   job_id: UUID;
   user_id: UUID;
   match_score: number | null;
-  status: "pending" | "reviewed" | "accepted" | "rejected";
+  match_score_breakdown: MatchBreakdown | null;
+  status: "pending" | "reviewed" | "shortlisted" | "interview" | "rejected" | "hired";
   applied_at: string;
+  status_changed_at: string;
 }
+
+export type MatchBreakdown = {
+  skills: number;
+  academics: number;
+  field: number;
+  career: number;
+};
 
 export interface FacultyOpportunity {
   id: UUID;
@@ -398,7 +407,7 @@ export interface StudentApplication {
   updated_at: string;
   notes: string | null;
   interview_dates: string[];
-  offer_details: Record<string, any> | null;
+  offer_details: Record<string, unknown> | null;
 }
 
 export interface InternshipFeedback {

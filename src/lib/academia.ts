@@ -3,6 +3,27 @@
 import { createClient } from "@/lib/supabase/server";
 import type { UUID } from "@/lib/types";
 
+interface MilestoneWithCourses {
+  title: string;
+  description: string | null;
+  order_index: number;
+  status: string;
+  courses: Array<{
+    id: string;
+    title: string;
+    description: string | null;
+    duration_weeks: number;
+    status: string;
+  }>;
+}
+
+interface RoadmapWithMilestones {
+  id: UUID;
+  career_title: string;
+  status: string;
+  milestones: MilestoneWithCourses[];
+}
+
 export interface SkillGapData {
   skill: string;
   cohort: string;
@@ -108,7 +129,7 @@ export async function getSkillGaps(limit = 10): Promise<SkillGapData[]> {
   const skillCounts: Record<string, { total: number; completed: number; career: string }> = {};
 
   for (const roadmap of roadmaps) {
-    const milestones = roadmap.milestones as any[];
+    const milestones = (roadmap.milestones as MilestoneWithCourses[]) || [];
     for (const milestone of milestones) {
       for (const course of milestone.courses || []) {
         const skill = course.title;
@@ -303,8 +324,17 @@ export async function getStudentList(filters?: { department?: string; year?: num
   ]);
 
   const readinessMap = new Map(readiness?.map(r => [r.user_id, r]) || []);
-  const roadmapMap = new Map(roadmaps?.map(r => [r.user_id, r]) || []);
-  const applicationsMap = new Map<string, any[]>();
+  const roadmapMap = new Map<UUID, RoadmapWithMilestones>(
+    (roadmaps?.map(r => [r.user_id, r as RoadmapWithMilestones]) || [])
+  );
+  const applicationsMap = new Map<UUID, Array<{
+  id: string;
+  user_id: string;
+  status: string;
+  applied_at: string;
+  match_score: number | null;
+  job_id: string;
+}>>();
   applications?.forEach(app => {
     if (!applicationsMap.has(app.user_id)) applicationsMap.set(app.user_id, []);
     applicationsMap.get(app.user_id)!.push(app);
@@ -317,7 +347,7 @@ export async function getStudentList(filters?: { department?: string; year?: num
 
     let roadmapProgress = 0;
     if (rm?.milestones) {
-      const milestones = rm.milestones as any[];
+      const milestones = (rm.milestones as MilestoneWithCourses[]) || [];
       const totalCourses = milestones.flatMap(m => m.courses || []).length;
       const completedCourses = milestones.flatMap(m => m.courses || []).filter(c => c.status === "completed").length;
       roadmapProgress = totalCourses > 0 ? Math.round((completedCourses / totalCourses) * 100) : 0;
