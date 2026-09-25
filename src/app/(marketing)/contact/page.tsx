@@ -1,0 +1,8 @@
+import type { Metadata } from "next";
+import { ContactForm } from "../_components/public-form";
+
+export const metadata: Metadata = { title: "Contact", description: "Contact the Nexvia team about student access, academic partnerships, industry opportunities, or product support.", alternates: { canonical: "/contact" } };
+
+export default function ContactPage() {
+  return <main className="mx-auto grid w-full max-w-5xl gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[.8fr_1.2fr]"><div><p className="text-xs font-bold uppercase tracking-[.2em] text-cyan-300">Contact ArticXcoders</p><h1 className="mt-4 font-display text-4xl uppercase text-white sm:text-5xl">Let’s build better career outcomes.</h1><p className="mt-5 leading-7 text-slate-400">Your message goes directly to the ArticXcoders product team. We usually respond within 24–48 hours.</p><div className="mt-6 flex flex-wrap gap-2">{["Student support", "College pilot", "Recruiter partnership", "Parent access", "Product feedback"].map((purpose) => <span key={purpose} className="rounded-full border border-cyan-400/20 bg-cyan-400/[.06] px-3 py-1.5 text-xs text-cyan-100">{purpose}</span>)}</div><div className="mt-8 rounded-2xl border border-white/10 bg-white/[.03] p-5 text-sm leading-6 text-slate-400"><strong className="text-white">Privacy first:</strong> we only use submitted details to respond. Never include passwords, API keys, or sensitive academic records.</div></div><section className="rounded-3xl border border-white/10 bg-white/[.03] p-6 sm:p-8"><h2 className="text-2xl font-bold text-white">Send a message</h2><p className="mt-2 text-sm text-slate-400">Select a clear subject such as “College pilot” or “Student support”.</p><div className="mt-6"><ContactForm /></div></section></main>;
+}

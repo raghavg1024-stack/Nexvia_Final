@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">ArticXcoders collaboration illustration</title>
+  <desc id="desc">An abstract illustration representing the six-member ArticXcoders product team collaborating.</desc>
+  <defs><linearGradient id="bg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#111827"/><stop offset=".55" stop-color="#312e81"/><stop offset="1" stop-color="#164e63"/></linearGradient></defs>
+  <rect width="1200" height="720" rx="48" fill="url(#bg)"/>
+  <g fill="#c4b5fd" opacity=".9">
+    <circle cx="260" cy="285" r="62"/><circle cx="600" cy="245" r="72"/><circle cx="940" cy="285" r="62"/>
+    <path d="M145 475c12-100 218-100 230 0v55H145z"/><path d="M465 460c15-115 255-115 270 0v70H465z"/><path d="M825 475c12-100 218-100 230 0v55H825z"/>
+  </g>
+  <text x="600" y="615" fill="white" font-family="Arial, sans-serif" font-size="36" font-weight="700" text-anchor="middle">ARTICXCODERS</text>
+  <text x="600" y="660" fill="#bae6fd" font-family="Arial, sans-serif" font-size="23" text-anchor="middle">Six specialists · one connected career platform</text>
+</svg>

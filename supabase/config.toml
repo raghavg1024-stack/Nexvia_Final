@@ -1,0 +1,19 @@
+# Supabase CLI configuration.
+# Used by `supabase start` (local dev) and `supabase link`.
+# NOTE: Hosted project settings must match — disable "Confirm email" under
+# Authentication -> Sign In / Providers -> Email in the dashboard, or keep the
+# auto-confirm trigger in supabase/migrations/0005_auth_login_fix.sql.
+
+project_id = "ufzsomqbndjggyswsnlg"
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/auth/callback"]
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+
+[auth.external]
+enabled = false
