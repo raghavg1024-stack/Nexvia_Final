@@ -320,3 +320,99 @@ export interface JobApplication {
   status: "pending" | "reviewed" | "accepted" | "rejected";
   applied_at: string;
 }
+
+export interface FacultyOpportunity {
+  id: UUID;
+  company_id: UUID;
+  title: string;
+  type: "faculty_internship" | "fdp" | "industrial_training" | "consultancy" | "research_collaboration" | "workshop" | "guest_lecture" | "mentorship";
+  description: string;
+  required_skills: string[];
+  duration_weeks: number | null;
+  location: string;
+  stipend_amount: string | null;
+  application_url: string | null;
+  application_deadline: string | null;
+  max_participants: number | null;
+  status: "open" | "closed" | "draft";
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FacultyApplication {
+  id: UUID;
+  opportunity_id: UUID;
+  user_id: UUID;
+  status: "pending" | "reviewed" | "accepted" | "rejected";
+  applied_at: string;
+}
+
+export interface IndustryCollaboration {
+  id: UUID;
+  company_id: UUID;
+  institution_id: UUID | null;
+  academician_id: UUID | null;
+  title: string;
+  type: "fdp" | "workshop" | "guest_lecture" | "innovation_challenge" | "consultancy" | "research_project" | "live_project" | "mentorship_program";
+  description: string;
+  start_date: string | null;
+  end_date: string | null;
+  status: "proposed" | "planned" | "active" | "completed" | "cancelled";
+  participants: number;
+  outcomes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PortfolioItem {
+  id: UUID;
+  user_id: UUID;
+  type: "project" | "internship" | "achievement" | "publication" | "certification" | "hackathon" | "competition";
+  title: string;
+  description: string | null;
+  skills: string[];
+  start_date: string | null;
+  end_date: string | null;
+  organization: string | null;
+  location: string | null;
+  verification_status: "self_reported" | "verified" | "pending_verification";
+  verification_source: string | null;
+  verification_id: UUID | null;
+  url: string | null;
+  image_url: string | null;
+  is_featured: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StudentApplication {
+  id: UUID;
+  user_id: UUID;
+  application_type: "job" | "internship" | "scholarship" | "faculty_opportunity" | "fellowship";
+  reference_id: UUID;
+  company_name: string | null;
+  title: string;
+  status: "applied" | "under_review" | "interviewing" | "offered" | "accepted" | "rejected" | "withdrawn";
+  applied_at: string;
+  updated_at: string;
+  notes: string | null;
+  interview_dates: string[];
+  offer_details: Record<string, any> | null;
+}
+
+export interface InternshipFeedback {
+  id: UUID;
+  job_application_id: UUID;
+  reviewer_id: UUID;
+  rating: number;
+  technical_skills_rating: number | null;
+  communication_rating: number | null;
+  teamwork_rating: number | null;
+  reliability_rating: number | null;
+  strengths: string | null;
+  improvement_areas: string | null;
+  would_recommend: boolean | null;
+  is_public: boolean;
+  created_at: string;
+}

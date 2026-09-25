@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/profile";
 import { getCompanyByUserId, getTopStudentMatches } from "@/lib/jobs";
 import { Reveal } from "@/app/_components/motion";
-import { Plus, Users, Building2, Briefcase } from "lucide-react";
+import { Plus, Users, Building2, Briefcase, BookOpen, Handshake, Star, Users2 } from "lucide-react";
 
 export const metadata = {
   title: "Industry Dashboard",
@@ -84,7 +84,7 @@ export default async function RecruiterDashboard() {
       </Reveal>
 
       <Reveal delay={0.1}>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-2xl border border-line bg-card p-6">
             <div className="flex items-center gap-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-500/10 text-blue-400">
@@ -107,6 +107,45 @@ export default async function RecruiterDashboard() {
                 <p className="text-sm font-medium text-slate-400">Total Applicants</p>
                 <p className="text-2xl font-bold text-slate-200">
                   {jobsWithMatches.reduce((sum, job) => sum + (job.job_applications?.length || 0), 0) || 0}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-line bg-card p-6">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-cyan-500/10 text-cyan-400">
+                <BookOpen className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-400">Faculty Opportunities</p>
+                <p className="text-2xl font-bold text-slate-200">
+                  <Link href="/recruiter/faculty-opportunities" className="text-accent hover:underline">Manage</Link>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-line bg-card p-6">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-violet-500/10 text-violet-400">
+                <Handshake className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-400">Collaborations</p>
+                <p className="text-2xl font-bold text-slate-200">
+                  <Link href="/recruiter/collaborations" className="text-accent hover:underline">Manage</Link>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-line bg-card p-6">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400">
+                <Star className="h-6 w-6 fill-current" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-400">Internship Feedback</p>
+                <p className="text-2xl font-bold text-slate-200">
+                  <Link href="/recruiter/feedback" className="text-accent hover:underline">Review</Link>
                 </p>
               </div>
             </div>

@@ -63,6 +63,20 @@ const quickActions = [
     gradient: "from-indigo-500 to-purple-500",
   },
   {
+    href: "/portfolio",
+    title: "Digital Portfolio",
+    description: "Showcase projects, internships, and achievements.",
+    icon: "⬟",
+    gradient: "from-violet-500 to-purple-500",
+  },
+  {
+    href: "/applications",
+    title: "Application Tracker",
+    description: "Track all your job and scholarship applications.",
+    icon: "⌖",
+    gradient: "from-cyan-500 to-blue-500",
+  },
+  {
     href: "/academia",
     title: "Academia Workspace",
     description: "See how institutions close classroom-to-career skill gaps.",

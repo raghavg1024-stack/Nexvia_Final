@@ -45,7 +45,9 @@ export async function proxy(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/rewards") ||
     request.nextUrl.pathname.startsWith("/recruiter") ||
     request.nextUrl.pathname.startsWith("/academia") ||
-    request.nextUrl.pathname.startsWith("/scholarships");
+    request.nextUrl.pathname.startsWith("/scholarships") ||
+    request.nextUrl.pathname.startsWith("/portfolio") ||
+    request.nextUrl.pathname.startsWith("/applications");
 
   if (!user && isProtectedRoute) {
     return NextResponse.redirect(new URL("/login", request.url));
@@ -72,6 +74,8 @@ export const config = {
     "/recruiter/:path*",
     "/academia/:path*",
     "/scholarships/:path*",
+    "/portfolio/:path*",
+    "/applications/:path*",
     "/login/:path*",
     "/signup/:path*",
   ],
