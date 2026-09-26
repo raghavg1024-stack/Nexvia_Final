@@ -77,49 +77,6 @@ async function readLoginChallenge(): Promise<{
   }
 }
 
-function getOtpErrorMessage(code?: string, status?: number) {
-  if (code === "email_address_not_authorized") {
-    return "Email delivery is not configured for this address. Please use your password or contact support.";
-  }
-  if (code === "otp_disabled") {
-    return "Email-code sign in is currently unavailable. Please use your password.";
-  }
-  if (code === "over_email_send_rate_limit" || status === 429) {
-    return "A code was requested recently. Wait about a minute, then try again.";
-  }
-  return "We could not send a sign-in email. Please use your password or try again shortly.";
-}
-
-async function sendLoginOtp(email: string, portal: PortalKey): Promise<AuthState> {
-  const supabase = await createClient();
-  const destination = PORTALS[portal].destination;
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: {
-      shouldCreateUser: false,
-      emailRedirectTo: `${await getOrigin()}/auth/callback?next=${encodeURIComponent(destination)}`,
-    },
-  });
-
-  if (error) {
-    return { error: getOtpErrorMessage(error.code, error.status) };
-  }
-
-  (await cookies()).set(LOGIN_OTP_COOKIE, JSON.stringify({ email, portal }), {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: LOGIN_OTP_MAX_AGE,
-  });
-
-  return {
-    step: "otp",
-    email,
-    success: "Your secure sign-in email is on its way.",
-  };
-}
-
 export async function signup(
   _prevState: AuthState,
   formData: FormData
@@ -182,23 +139,29 @@ export async function login(
     return { error: `This account is not registered for the ${PORTALS[portal].label} Portal. Please choose the correct portal.` };
   }
 
-  (await cookies()).delete(LOGIN_OTP_COOKIE);
-  redirect(PORTALS[portal].destination);
-}
+  await supabase.auth.signOut();
 
-export async function requestLoginOtp(
-  _prevState: AuthState,
-  formData: FormData
-): Promise<AuthState> {
-  const email = String(formData.get("email") ?? "").trim().toLowerCase();
-  const rawPortal = String(formData.get("portal") ?? "student");
-  const portal: PortalKey = isPortalKey(rawPortal) ? rawPortal : "student";
-
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return { error: "Enter the email address linked to your Nexvia account." };
+  const { error: otpError } = await supabase.auth.signInWithOtp({
+    email,
+    options: { shouldCreateUser: false },
+  });
+  if (otpError) {
+    return { error: "We could not send a verification code to this email. Please try again." };
   }
 
-  return sendLoginOtp(email, portal);
+  (await cookies()).set(LOGIN_OTP_COOKIE, JSON.stringify({ email, portal }), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: LOGIN_OTP_MAX_AGE,
+  });
+
+  return {
+    step: "otp",
+    email,
+    success: `We sent a 6-digit verification code to ${email}. It expires in 10 minutes.`,
+  };
 }
 
 export async function verifyLoginOtp(
@@ -227,9 +190,7 @@ export async function verifyLoginOtp(
     return {
       step: "otp",
       email: challenge.email,
-      error: error?.code === "otp_expired"
-        ? "That code has expired. Request a fresh code and try again."
-        : "That code does not match. Check the six digits and try again.",
+      error: "That code is invalid or has expired. Request a new code and try again.",
     };
   }
 
@@ -255,14 +216,30 @@ export async function resendLoginOtp(
     return { error: "Your verification session expired. Please sign in again." };
   }
 
-  const result = await sendLoginOtp(challenge.email, challenge.portal);
-  return result.error
-    ? { ...result, step: "otp", email: challenge.email }
-    : { ...result, success: "A fresh sign-in email is on its way." };
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithOtp({
+    email: challenge.email,
+    options: { shouldCreateUser: false },
+  });
+
+  if (error) {
+    return {
+      step: "otp",
+      email: challenge.email,
+      error: error.status === 429
+        ? "Please wait about a minute before requesting another code."
+        : "We could not resend the code. Please try again shortly.",
+    };
+  }
+
+  return {
+    step: "otp",
+    email: challenge.email,
+    success: "A new verification code is on its way. Check your inbox.",
+  };
 }
 
 export async function cancelLoginOtp(): Promise<void> {
-  const challenge = await readLoginChallenge();
   (await cookies()).delete(LOGIN_OTP_COOKIE);
-  redirect(challenge ? `/login/${challenge.portal}` : "/login");
+  redirect("/login");
 }
