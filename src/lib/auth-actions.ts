@@ -178,6 +178,10 @@ export async function login(
     options: { shouldCreateUser: false },
   });
   if (otpError) {
+    console.error("[auth:otp-send] Supabase rejected verification-code delivery", {
+      code: otpError.code,
+      status: otpError.status,
+    });
     return { error: otpDeliveryError(otpError) };
   }
 
@@ -219,6 +223,12 @@ export async function verifyLoginOtp(
   });
 
   if (error || !data.session || !data.user) {
+    if (error) {
+      console.error("[auth:otp-verify] Supabase rejected verification code", {
+        code: error.code,
+        status: error.status,
+      });
+    }
     return {
       step: "otp",
       email: challenge.email,
@@ -255,6 +265,10 @@ export async function resendLoginOtp(
   });
 
   if (error) {
+    console.error("[auth:otp-resend] Supabase rejected verification-code delivery", {
+      code: error.code,
+      status: error.status,
+    });
     return {
       step: "otp",
       email: challenge.email,
