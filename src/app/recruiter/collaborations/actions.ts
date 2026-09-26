@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import type { IndustryCollaboration } from "@/lib/types";
 
 export type CollaborationActionState = { error?: string | null; ok?: boolean };
@@ -67,7 +68,7 @@ export async function createCollaborationAction(
   if (error) return { error: error.message };
 
   revalidatePath("/recruiter/collaborations");
-  return { ok: true };
+  redirect("/recruiter/collaborations");
 }
 
 export async function updateCollaborationAction(
@@ -114,7 +115,7 @@ export async function updateCollaborationAction(
   if (error) return { error: error.message };
 
   revalidatePath("/recruiter/collaborations");
-  return { ok: true };
+  redirect("/recruiter/collaborations");
 }
 
 export async function deleteCollaborationAction(
@@ -142,5 +143,5 @@ export async function deleteCollaborationAction(
   if (error) return { error: error.message };
 
   revalidatePath("/recruiter/collaborations");
-  return { ok: true };
+  redirect("/recruiter/collaborations");
 }

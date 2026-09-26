@@ -1,10 +1,13 @@
 "use client";
 
 import { useActionState } from "react";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, BookOpen, Briefcase, Code, FlaskConical, Users, UserCheck, Calendar, Building2, MapPin, DollarSign, Clock, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, BookOpen, Briefcase, Code, FlaskConical, Users, UserCheck, Calendar, MapPin, DollarSign, Clock, CheckCircle2 } from "lucide-react";
 import { applyToFacultyOpportunityAction } from "./actions";
+import type { FacultyApplyActionState, FacultyOpportunityDetails } from "./actions";
+
+const initialActionState: FacultyApplyActionState = { error: null };
 
 const TYPE_CONFIG = {
   faculty_internship: { label: "Faculty Internship", icon: Briefcase, color: "bg-blue-500/10 text-blue-400" },
@@ -28,11 +31,12 @@ function TypeBadge({ type }: { type: string }) {
 }
 
 interface FacultyOpportunityApplyClientProps {
-  initialOpportunity: any;
+  initialOpportunity: FacultyOpportunityDetails;
 }
 
 export function FacultyOpportunityApplyClient({ initialOpportunity }: FacultyOpportunityApplyClientProps) {
-  const [state, formAction, pending] = useActionState(applyToFacultyOpportunityAction, { error: null });
+  const router = useRouter();
+  const [state, formAction, pending] = useActionState(applyToFacultyOpportunityAction, initialActionState);
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
@@ -45,7 +49,7 @@ export function FacultyOpportunityApplyClient({ initialOpportunity }: FacultyOpp
       </div>
 
       {state.ok && state.success ? (
-        <SuccessMessage onContinue={() => redirect("/academia/opportunities")} />
+        <SuccessMessage onContinue={() => router.push("/academia/opportunities")} />
       ) : (
         <ApplicationForm action={formAction} pending={pending} error={state.error} opportunityId={initialOpportunity.id} />
       )}
@@ -53,7 +57,7 @@ export function FacultyOpportunityApplyClient({ initialOpportunity }: FacultyOpp
   );
 }
 
-function OpportunityDetails({ opportunity }: { opportunity: any }) {
+function OpportunityDetails({ opportunity }: { opportunity: FacultyOpportunityDetails }) {
   const config = TYPE_CONFIG[opportunity.type as keyof typeof TYPE_CONFIG] || { label: opportunity.type, icon: Users, color: "bg-slate-500/10 text-slate-400" };
   const Icon = config.icon;
 
@@ -130,7 +134,7 @@ function OpportunityDetails({ opportunity }: { opportunity: any }) {
   );
 }
 
-function ApplicationForm({ action, pending, error, opportunityId }: { action: any; pending: boolean; error: string | null; opportunityId: string }) {
+function ApplicationForm({ action, pending, error, opportunityId }: { action: (formData: FormData) => void; pending: boolean; error?: string | null; opportunityId: string }) {
   return (
     <div className="mt-6 rounded-2xl border border-line bg-card p-6">
       <h2 className="font-display text-lg uppercase tracking-tight text-foreground">Apply for this Opportunity</h2>

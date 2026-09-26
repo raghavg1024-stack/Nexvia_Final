@@ -34,10 +34,6 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   // Allows a verification build to run beside a local development server.
   distDir: process.env.NEXVIA_DIST_DIR ?? ".next",
-  // Ignore pre-existing TypeScript errors in pre-existing files (not related to Area 1)
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   experimental: {
     // Resume PDFs are uploaded through a Server Action. Keep this slightly above
     // the app's 3 MB file limit to leave room for multipart form metadata.

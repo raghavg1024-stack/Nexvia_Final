@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 export type FacultyOpportunityActionState = { error?: string | null; ok?: boolean };
 
@@ -76,7 +77,7 @@ export async function createFacultyOpportunityAction(
   if (error) return { error: error.message };
 
   revalidatePath("/recruiter/faculty-opportunities");
-  return { ok: true };
+  redirect("/recruiter/faculty-opportunities");
 }
 
 export async function updateFacultyOpportunityAction(
@@ -133,7 +134,7 @@ export async function updateFacultyOpportunityAction(
   if (error) return { error: error.message };
 
   revalidatePath("/recruiter/faculty-opportunities");
-  return { ok: true };
+  redirect("/recruiter/faculty-opportunities");
 }
 
 export async function deleteFacultyOpportunityAction(
@@ -161,5 +162,5 @@ export async function deleteFacultyOpportunityAction(
   if (error) return { error: error.message };
 
   revalidatePath("/recruiter/faculty-opportunities");
-  return { ok: true };
+  redirect("/recruiter/faculty-opportunities");
 }

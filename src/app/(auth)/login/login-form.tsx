@@ -3,14 +3,22 @@
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { useActionState, useState } from "react";
-import { login, type AuthState } from "@/lib/auth-actions";
+import {
+  cancelLoginOtp,
+  login,
+  resendLoginOtp,
+  verifyLoginOtp,
+  type AuthState,
+} from "@/lib/auth-actions";
 import { PORTALS, type PortalKey } from "@/lib/portal-auth";
 
 const initialState: AuthState = { error: null, success: null };
 const inputClass = "mt-1 w-full rounded-xl border border-line bg-background px-4 py-3 text-sm text-foreground placeholder-slate-500 outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20";
 
 export function LoginForm({ portalKey }: { portalKey: PortalKey }) {
-  const [state, formAction, pending] = useActionState(login, initialState);
+  const [loginState, loginAction, loginPending] = useActionState(login, initialState);
+  const [verifyState, verifyAction, verifyPending] = useActionState(verifyLoginOtp, initialState);
+  const [resendState, resendAction, resendPending] = useActionState(resendLoginOtp, initialState);
   const [showPassword, setShowPassword] = useState(false);
   const portal = PORTALS[portalKey];
   const portalSignals = {
@@ -30,7 +38,46 @@ export function LoginForm({ portalKey }: { portalKey: PortalKey }) {
         <p className="mt-8 text-xs font-bold uppercase tracking-[.2em] text-cyan-300">{portal.eyebrow}</p>
         <h1 className="mt-2 font-display text-3xl uppercase tracking-tight text-white">{portal.label} Login</h1>
         <p className="mt-2 text-sm leading-6 text-slate-400">{portal.description}</p>
-        <form action={formAction} className="mt-8 space-y-4">
+        {loginState.step === "otp" ? (
+          <div className="mt-8 space-y-4">
+            <div className="rounded-xl border border-cyan-400/25 bg-cyan-400/10 px-4 py-3 text-sm text-cyan-100">
+              {resendState.success ?? loginState.success}
+            </div>
+            <form action={verifyAction} className="space-y-4">
+              <div>
+                <label htmlFor="otp" className="text-sm font-medium text-slate-300">Verification code</label>
+                <input
+                  id="otp"
+                  name="otp"
+                  type="text"
+                  required
+                  autoComplete="one-time-code"
+                  inputMode="numeric"
+                  pattern="[0-9]{6}"
+                  maxLength={6}
+                  placeholder="6-digit code"
+                  className={`${inputClass} text-center font-mono text-lg tracking-[0.4em]`}
+                />
+              </div>
+              {verifyState.error ? <p role="alert" className="rounded-xl border border-rose-400/25 bg-rose-400/10 px-4 py-3 text-sm text-rose-200">{verifyState.error}</p> : null}
+              <button type="submit" disabled={verifyPending} className={`w-full rounded-xl bg-gradient-to-r ${portal.accent} px-4 py-3 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-60`}>
+                {verifyPending ? "Verifying..." : "Verify and continue"}
+              </button>
+            </form>
+            {resendState.error ? <p role="alert" className="rounded-xl border border-rose-400/25 bg-rose-400/10 px-4 py-3 text-sm text-rose-200">{resendState.error}</p> : null}
+            <div className="flex items-center justify-between gap-4 text-xs">
+              <form action={resendAction}>
+                <button type="submit" disabled={resendPending} className="font-semibold text-cyan-300 transition hover:text-white disabled:opacity-60">
+                  {resendPending ? "Sending..." : "Resend code"}
+                </button>
+              </form>
+              <form action={cancelLoginOtp}>
+                <button type="submit" className="text-slate-500 transition hover:text-white">Use another account</button>
+              </form>
+            </div>
+          </div>
+        ) : (
+        <form action={loginAction} className="mt-8 space-y-4">
           <input type="hidden" name="portal" value={portalKey} />
           <div>
             <label htmlFor="email" className="text-sm font-medium text-slate-300">Email</label>
@@ -40,11 +87,12 @@ export function LoginForm({ portalKey }: { portalKey: PortalKey }) {
             <label htmlFor="password" className="text-sm font-medium text-slate-300">Password</label>
             <div className="relative"><input id="password" name="password" type={showPassword ? "text" : "password"} required autoComplete="current-password" placeholder="Your password" className={`${inputClass} pr-12`} /><button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? "Hide password" : "Show password"} className="absolute bottom-3 right-3 text-slate-400 hover:text-white">{showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}</button></div>
           </div>
-          {state?.error ? <p role="alert" className="rounded-xl border border-rose-400/25 bg-rose-400/10 px-4 py-3 text-sm text-rose-200">{state.error}</p> : null}
-          <button type="submit" disabled={pending} className={`w-full rounded-xl bg-gradient-to-r ${portal.accent} px-4 py-3 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-60`}>
-            {pending ? "Signing in..." : `Sign in to ${portal.label} Portal`}
+          {loginState.error ? <p role="alert" className="rounded-xl border border-rose-400/25 bg-rose-400/10 px-4 py-3 text-sm text-rose-200">{loginState.error}</p> : null}
+          <button type="submit" disabled={loginPending} className={`w-full rounded-xl bg-gradient-to-r ${portal.accent} px-4 py-3 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-60`}>
+            {loginPending ? "Signing in..." : `Sign in to ${portal.label} Portal`}
           </button>
         </form>
+        )}
         <p className="mt-6 text-center text-sm text-slate-400">
           Need an account? <Link href={`/signup/${portalKey}`} className="font-semibold text-cyan-300 hover:text-white">Create one</Link>
         </p>

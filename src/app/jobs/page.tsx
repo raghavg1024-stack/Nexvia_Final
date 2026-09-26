@@ -108,7 +108,7 @@ function LocalJobCard({
   const handleApply = async () => {
     "use server";
     try {
-      await applyToJob(job.id, job.matchScore);
+      await applyToJob(job.id);
       revalidatePath("/jobs");
     } catch (error) {
       console.error(error);

@@ -9,11 +9,6 @@ import {
   GraduationCap,
   Target,
   Users,
-  TrendingUp,
-  AlertTriangle,
-  Briefcase,
-  BookOpen,
-  LineChart,
 } from "lucide-react";
 import { Reveal, Stagger, StaggerItem } from "../_components/motion";
 import {

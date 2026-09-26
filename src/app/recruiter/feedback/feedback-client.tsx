@@ -1,27 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useActionState } from "react";
-import { ArrowLeft, Star, Edit, Check, X, MessageSquare, Plus } from "lucide-react";
-import { Reveal, Stagger, StaggerItem } from "@/app/_components/motion";
+import { useActionState, useState } from "react";
+import Image from "next/image";
+import { MessageSquare } from "lucide-react";
+import { Stagger, StaggerItem } from "@/app/_components/motion";
 import { submitFeedbackAction } from "./actions";
+import type { ApplicationForFeedback, FeedbackActionState } from "./actions";
 
-interface ApplicationForFeedback {
-  id: string;
-  status: string;
-  applied_at: string;
-  profiles: {
-    id: string | null;
-    full_name: string | null;
-    email: string | null;
-    avatar_url: string | null;
-  } | null;
-  jobs: {
-    id: string;
-    title: string;
-    company_id: string;
-  } | null;
-}
+const initialActionState: FeedbackActionState = { error: null };
 
 interface FeedbackClientProps {
   initialApplications: ApplicationForFeedback[];
@@ -37,6 +23,7 @@ function StarRating({ value, onChange, disabled }: { value: number; onChange: (v
           type="button"
           onClick={() => !disabled && onChange(star)}
           disabled={disabled}
+          aria-label={`${star} star${star === 1 ? "" : "s"}`}
           className="p-1 text-2xl transition-colors"
           style={{ color: star <= value ? "#fbbf24" : "#64748b" }}
         >
@@ -64,9 +51,9 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function FeedbackCard({ application, onSubmitFeedback }: { application: ApplicationForFeedback; onSubmitFeedback: (app: ApplicationForFeedback) => void }) {
+function FeedbackCard({ application }: { application: ApplicationForFeedback }) {
   const [showForm, setShowForm] = useState(false);
-  const [formState, formAction, formPending] = useActionState(submitFeedbackAction, { error: null });
+  const [formState, formAction, formPending] = useActionState(submitFeedbackAction, initialActionState);
   const [ratings, setRatings] = useState({
     overall: 0,
     technical: 0,
@@ -79,20 +66,13 @@ function FeedbackCard({ application, onSubmitFeedback }: { application: Applicat
   const [wouldRecommend, setWouldRecommend] = useState(true);
   const [isPublic, setIsPublic] = useState(false);
 
-  const handleSubmit = async (formData: FormData) => {
-    const result = await formAction(formData);
-    if (result.ok) {
-      setShowForm(false);
-    }
-  };
-
   return (
     <div className="rounded-2xl border border-line bg-card p-5 transition hover:border-accent/30">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-slate-800">
             {application.profiles?.avatar_url ? (
-              <img src={application.profiles.avatar_url} alt="" className="h-full w-full rounded-xl object-cover" />
+              <Image src={application.profiles.avatar_url} alt="" width={40} height={40} className="h-full w-full rounded-xl object-cover" />
             ) : (
               <span className="font-display text-lg text-slate-400">
                 {application.profiles?.full_name?.charAt(0).toUpperCase() || "?"}
@@ -117,9 +97,13 @@ function FeedbackCard({ application, onSubmitFeedback }: { application: Applicat
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="mt-5 space-y-4 border-t border-line pt-5">
+        <form action={formAction} className="mt-5 space-y-4 border-t border-line pt-5">
           <input type="hidden" name="job_application_id" value={application.id} />
-          <input type="hidden" name="reviewer_id" value={application.profiles?.id || ""} />
+          <input type="hidden" name="rating" value={ratings.overall} />
+          <input type="hidden" name="technical_skills_rating" value={ratings.technical} />
+          <input type="hidden" name="communication_rating" value={ratings.communication} />
+          <input type="hidden" name="teamwork_rating" value={ratings.teamwork} />
+          <input type="hidden" name="reliability_rating" value={ratings.reliability} />
 
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-2">Overall Rating *</label>
@@ -161,6 +145,7 @@ function FeedbackCard({ application, onSubmitFeedback }: { application: Applicat
               Show on student&apos;s public portfolio
             </label>
           </div>
+          {formState.error ? <p role="alert" className="text-sm text-rose-400">{formState.error}</p> : null}
           <div className="flex gap-3">
             <button type="submit" disabled={formPending || ratings.overall === 0} className="flex-1 rounded-xl bg-accent px-5 py-3 font-semibold text-white transition hover:bg-accent/90 disabled:opacity-60">
               {formPending ? "Submitting..." : "Submit Feedback"}
@@ -198,7 +183,7 @@ export function FeedbackClient({ initialApplications, hasMembership }: FeedbackC
     <Stagger className="mt-6 space-y-4">
       {initialApplications.map((app) => (
         <StaggerItem key={app.id}>
-          <FeedbackCard application={app} onSubmitFeedback={() => {}} />
+          <FeedbackCard application={app} />
         </StaggerItem>
       ))}
     </Stagger>

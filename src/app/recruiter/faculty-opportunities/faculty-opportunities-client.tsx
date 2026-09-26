@@ -1,11 +1,28 @@
 "use client";
 
-import { useState } from "react";
-import { useActionState } from "react";
+import { useActionState, useState, useTransition } from "react";
 import Link from "next/link";
-import { ArrowLeft, Plus, Building2, Calendar, Users, CheckCircle2, Clock, XCircle, Edit, Trash2, BookOpen, Lightbulb, FlaskConical, Code, UserCheck, Briefcase } from "lucide-react";
-import { Reveal, Stagger, StaggerItem } from "@/app/_components/motion";
+import { Plus, Building2, Calendar, Users, Edit, Trash2, BookOpen, FlaskConical, Code, UserCheck, Briefcase } from "lucide-react";
+import { Stagger, StaggerItem } from "@/app/_components/motion";
 import { createFacultyOpportunityAction, updateFacultyOpportunityAction, deleteFacultyOpportunityAction } from "./actions";
+import type { FacultyOpportunityActionState } from "./actions";
+
+interface FacultyOpportunity {
+  id: string;
+  title: string;
+  type: string;
+  description: string;
+  duration_weeks: number | null;
+  location: string | null;
+  stipend_amount: string | null;
+  application_deadline: string | null;
+  required_skills: string[] | null;
+  application_url: string | null;
+  max_participants: number | null;
+  status: string;
+}
+
+const initialActionState: FacultyOpportunityActionState = { error: null };
 
 const OPPORTUNITY_TYPES = [
   { value: "faculty_internship", label: "Faculty Internship", icon: Briefcase },
@@ -41,7 +58,7 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function OpportunityCard({ opportunity, onEdit, onDelete }: { opportunity: any; onEdit: (opp: any) => void; onDelete: (id: string) => void }) {
+function OpportunityCard({ opportunity, onEdit, onDelete }: { opportunity: FacultyOpportunity; onEdit: (opp: FacultyOpportunity) => void; onDelete: (id: string) => void }) {
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-line bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-xl hover:shadow-slate-200">
       <div className="flex items-start justify-between gap-3">
@@ -91,12 +108,14 @@ function OpportunityCard({ opportunity, onEdit, onDelete }: { opportunity: any; 
 function OpportunityForm({
   initialData,
   onCancel,
-  onSubmit,
+  action,
+  error,
   pending,
 }: {
-  initialData?: any;
+  initialData?: FacultyOpportunity | null;
   onCancel: () => void;
-  onSubmit: (formData: FormData) => Promise<void>;
+  action: (formData: FormData) => void;
+  error?: string | null;
   pending: boolean;
 }) {
   const isEditing = !!initialData;
@@ -110,7 +129,7 @@ function OpportunityForm({
         <button type="button" onClick={onCancel} className="text-slate-400 hover:text-slate-200">Cancel</button>
       </div>
 
-      <form onSubmit={onSubmit} className="grid gap-5">
+      <form action={action} className="grid gap-5">
         {isEditing && <input type="hidden" name="id" value={initialData.id} />}
         <label className="grid gap-2 text-sm font-medium text-slate-300">
           Title *
@@ -167,6 +186,7 @@ function OpportunityForm({
           </select>
         </label>
 
+        {error ? <p role="alert" className="text-sm text-rose-400">{error}</p> : null}
         <div className="flex gap-3">
           <button type="submit" disabled={pending} className="flex-1 rounded-xl bg-accent px-5 py-3 font-semibold text-white transition hover:bg-accent/90 disabled:opacity-60">
             {pending ? "Saving..." : isEditing ? "Update Opportunity" : "Create Opportunity"}
@@ -181,33 +201,23 @@ function OpportunityForm({
 }
 
 interface FacultyOpportunitiesClientProps {
-  initialOpportunities: any[];
+  initialOpportunities: FacultyOpportunity[];
   hasMembership: boolean;
 }
 
 export function FacultyOpportunitiesClient({ initialOpportunities, hasMembership }: FacultyOpportunitiesClientProps) {
   const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingOpportunity, setEditingOpportunity] = useState<FacultyOpportunity | null>(null);
+  const [, startDeleteTransition] = useTransition();
 
-  const [formState, formAction, formPending] = useActionState(createFacultyOpportunityAction, { error: null });
-  const [editState, editAction, editPending] = useActionState(updateFacultyOpportunityAction, { error: null });
-  const [deleteState, deleteAction, deletePending] = useActionState(deleteFacultyOpportunityAction, { error: null });
+  const [formState, formAction, formPending] = useActionState(createFacultyOpportunityAction, initialActionState);
+  const [editState, editAction, editPending] = useActionState(updateFacultyOpportunityAction, initialActionState);
+  const [, deleteAction] = useActionState(deleteFacultyOpportunityAction, initialActionState);
 
-  const handleCreate = async (formData: FormData) => {
-    const result = await formAction(formData);
-    if (result.ok) setShowForm(false);
-  };
-
-  const handleUpdate = async (formData: FormData) => {
-    const result = await editAction(formData);
-    if (result.ok) setEditingId(null);
-  };
-
-  const handleDelete = async (formData: FormData) => {
-    const result = await deleteAction(formData);
-    if (result.ok) {
-      // Would need refresh, for now just close
-    }
+  const handleDelete = (id: string) => {
+    const formData = new FormData();
+    formData.set("id", id);
+    startDeleteTransition(() => deleteAction(formData));
   };
 
   if (!hasMembership) {
@@ -224,7 +234,7 @@ export function FacultyOpportunitiesClient({ initialOpportunities, hasMembership
         <h2 className="font-display text-xl uppercase tracking-tight text-foreground">Faculty Opportunities</h2>
         <button
           type="button"
-          onClick={() => { setEditingId(null); setShowForm(true); }}
+          onClick={() => { setEditingOpportunity(null); setShowForm(true); }}
           className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accent/90"
         >
           <Plus className="h-4 w-4" /> Create Opportunity
@@ -233,9 +243,11 @@ export function FacultyOpportunitiesClient({ initialOpportunities, hasMembership
 
       {showForm ? (
         <OpportunityForm
-          onCancel={() => { setShowForm(false); setEditingId(null); }}
-          onSubmit={editingId ? handleUpdate : handleCreate}
-          pending={editingId ? editPending : formPending}
+          initialData={editingOpportunity}
+          onCancel={() => { setShowForm(false); setEditingOpportunity(null); }}
+          action={editingOpportunity ? editAction : formAction}
+          error={editingOpportunity ? editState.error : formState.error}
+          pending={editingOpportunity ? editPending : formPending}
         />
       ) : initialOpportunities.length > 0 ? (
         <Stagger className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -243,8 +255,8 @@ export function FacultyOpportunitiesClient({ initialOpportunities, hasMembership
             <StaggerItem key={opp.id}>
               <OpportunityCard
                 opportunity={opp}
-                onEdit={(opp) => { setEditingId(opp.id); setShowForm(true); }}
-                onDelete={(id) => { const fd = new FormData(); fd.set("id", id); deleteAction(fd); }}
+                onEdit={(opp) => { setEditingOpportunity(opp); setShowForm(true); }}
+                onDelete={handleDelete}
               />
             </StaggerItem>
           ))}
@@ -256,7 +268,7 @@ export function FacultyOpportunitiesClient({ initialOpportunities, hasMembership
           <p className="mt-2 text-sm text-slate-500">Create FDPs, workshops, research collaborations, and more to engage with academicians.</p>
           <button
             type="button"
-            onClick={() => { setEditingId(null); setShowForm(true); }}
+            onClick={() => { setEditingOpportunity(null); setShowForm(true); }}
             className="mt-6 inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent/90"
           >
             <Plus className="h-4 w-4" /> Create Opportunity

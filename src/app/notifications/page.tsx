@@ -1,12 +1,13 @@
-import React from "react";
+import type { ComponentType } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft, Bell, Check, X, Mail, Briefcase, Star, MessageSquare, Award, Clock, AlertCircle } from "lucide-react";
+import { revalidatePath } from "next/cache";
+import { ArrowLeft, Bell, Check, Mail, Briefcase, Star, AlertCircle } from "lucide-react";
 import { getProfile } from "@/lib/profile";
 import { getNotifications, markNotificationRead, markAllNotificationsRead, getUnreadCount } from "@/lib/notifications";
 import type { Notification } from "@/lib/notifications";
 
-const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+const ICONS: Record<string, ComponentType<{ className?: string }>> = {
   application_status: Briefcase,
   streak_reminder: Star,
   weekly_recap: Mail,
@@ -22,6 +23,12 @@ export default async function NotificationsPage() {
     getUnreadCount(),
   ]);
 
+  async function markAllReadAction() {
+    "use server";
+    await markAllNotificationsRead();
+    revalidatePath("/notifications");
+  }
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       <Link href="/dashboard" className="mb-6 inline-flex items-center gap-2 text-sm text-slate-400 hover:text-slate-200">
@@ -34,15 +41,11 @@ export default async function NotificationsPage() {
           <p className="mt-1 text-slate-400">Stay updated on your applications and activity</p>
         </div>
         {unreadCount > 0 && (
-          <button
-            onClick={async () => {
-              const res = await markAllNotificationsRead();
-              if (res.ok) window.location.reload();
-            }}
-            className="rounded-lg bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-500 hover:bg-emerald-500/20"
-          >
-            <Check className="h-4 w-4 mr-1" /> Mark all read ({unreadCount})
-          </button>
+          <form action={markAllReadAction}>
+            <button type="submit" className="rounded-lg bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-500 hover:bg-emerald-500/20">
+              <Check className="h-4 w-4 mr-1" /> Mark all read ({unreadCount})
+            </button>
+          </form>
         )}
       </div>
 
@@ -55,7 +58,7 @@ export default async function NotificationsPage() {
       ) : (
         <div className="mt-6 space-y-3">
           {notifications.map((notif) => (
-            <NotificationCard key={notif.id} notification={notif} onRead={markNotificationRead} />
+            <NotificationCard key={notif.id} notification={notif} />
           ))}
         </div>
       )}
@@ -63,18 +66,18 @@ export default async function NotificationsPage() {
   );
 }
 
-function NotificationCard({ notification, onRead }: { notification: Notification; onRead: (id: string) => Promise<{ ok: boolean } | { error: string }> }) {
-  const [read, setRead] = React.useState(notification.read);
+function NotificationCard({ notification }: { notification: Notification }) {
   const Icon = ICONS[notification.type] || Bell;
+  const jobTitle = typeof notification.data?.job_title === "string" ? notification.data.job_title : null;
 
-  const handleRead = async () => {
-    if (read) return;
-    const res = await onRead(notification.id);
-    if (res.ok) setRead(true);
-  };
+  async function markReadAction() {
+    "use server";
+    await markNotificationRead(notification.id);
+    revalidatePath("/notifications");
+  }
 
   return (
-    <div className={`rounded-xl border p-4 transition-colors ${read ? "border-line bg-card" : "border-amber-500/30 bg-amber-500/5 ring-1 ring-amber-500/10"}`}>
+    <div className={`rounded-xl border p-4 transition-colors ${notification.read ? "border-line bg-card" : "border-amber-500/30 bg-amber-500/5 ring-1 ring-amber-500/10"}`}>
       <div className="flex items-start gap-3">
         <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${getTypeColor(notification.type)}`}>
           <Icon className="h-5 w-5" />
@@ -87,16 +90,15 @@ function NotificationCard({ notification, onRead }: { notification: Notification
             </span>
           </div>
           <p className="mt-1 text-sm text-slate-400">{notification.message}</p>
-          {notification.data?.job_title && (
-            <p className="mt-2 text-xs text-slate-500">Job: {notification.data.job_title}</p>
+          {jobTitle && (
+            <p className="mt-2 text-xs text-slate-500">Job: {jobTitle}</p>
           )}
-          {!read && (
-            <button
-              onClick={handleRead}
-              className="mt-3 text-xs font-medium text-accent hover:underline"
-            >
-              Mark as read
-            </button>
+          {!notification.read && (
+            <form action={markReadAction}>
+              <button type="submit" className="mt-3 text-xs font-medium text-accent hover:underline">
+                Mark as read
+              </button>
+            </form>
           )}
         </div>
       </div>

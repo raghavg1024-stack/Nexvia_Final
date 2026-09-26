@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/profile";
 import { getCompanyByUserId, getTopStudentMatches } from "@/lib/jobs";
 import { Reveal } from "@/app/_components/motion";
-import { Plus, Users, Building2, Briefcase, BookOpen, Handshake, Star, Users2 } from "lucide-react";
+import { Plus, Users, Building2, Briefcase, BookOpen, Handshake, Star } from "lucide-react";
 
 export const metadata = {
   title: "Industry Dashboard",

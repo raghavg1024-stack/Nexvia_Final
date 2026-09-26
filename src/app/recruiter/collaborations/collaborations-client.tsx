@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useActionState } from "react";
-import Link from "next/link";
-import { ArrowLeft, Plus, Building2, Calendar, Users, CheckCircle2, Clock, XCircle, Edit, Trash2, BookOpen, Lightbulb, FlaskConical, Code, UserCheck, Briefcase, Handshake } from "lucide-react";
-import { Reveal, Stagger, StaggerItem } from "@/app/_components/motion";
+import { useActionState, useState, useTransition } from "react";
+import { Plus, Calendar, Users, Edit, Trash2, BookOpen, Lightbulb, FlaskConical, Code, UserCheck, Briefcase, Handshake } from "lucide-react";
+import { Stagger, StaggerItem } from "@/app/_components/motion";
 import { createCollaborationAction, updateCollaborationAction, deleteCollaborationAction } from "./actions";
+import type { CollaborationActionState } from "./actions";
 import type { IndustryCollaboration } from "@/lib/types";
+
+const initialActionState: CollaborationActionState = { error: null };
 
 const COLLABORATION_TYPES = [
   { value: "fdp", label: "Faculty Development Program (FDP)", icon: BookOpen },
@@ -90,12 +91,14 @@ function CollaborationCard({ collaboration, onEdit, onDelete }: { collaboration:
 function CollaborationForm({
   initialData,
   onCancel,
-  onSubmit,
+  action,
+  error,
   pending,
 }: {
   initialData?: IndustryCollaboration | null;
   onCancel: () => void;
-  onSubmit: (formData: FormData) => Promise<void>;
+  action: (formData: FormData) => void;
+  error?: string | null;
   pending: boolean;
 }) {
   const isEditing = !!initialData;
@@ -109,7 +112,7 @@ function CollaborationForm({
         <button type="button" onClick={onCancel} className="text-slate-400 hover:text-slate-200">Cancel</button>
       </div>
 
-      <form onSubmit={onSubmit} className="grid gap-5">
+      <form action={action} className="grid gap-5">
         {isEditing && <input type="hidden" name="id" value={initialData!.id} />}
         <label className="grid gap-2 text-sm font-medium text-slate-300">
           Title *
@@ -154,6 +157,7 @@ function CollaborationForm({
           <textarea name="outcomes" rows={3} defaultValue={initialData?.outcomes || ""} className="rounded-xl border border-line bg-background px-4 py-3 text-slate-100 outline-none focus:border-accent" placeholder="Key outcomes, papers published, products built, students trained, etc." />
         </label>
 
+        {error ? <p role="alert" className="text-sm text-rose-400">{error}</p> : null}
         <div className="flex gap-3">
           <button type="submit" disabled={pending} className="flex-1 rounded-xl bg-accent px-5 py-3 font-semibold text-white transition hover:bg-accent/90 disabled:opacity-60">
             {pending ? "Saving..." : isEditing ? "Update Collaboration" : "Create Collaboration"}
@@ -173,30 +177,23 @@ interface CollaborationsClientProps {
 }
 
 export function CollaborationsClient({ initialCollaborations, hasMembership }: CollaborationsClientProps) {
-  const [collaborations, setCollaborations] = useState<IndustryCollaboration[]>(initialCollaborations);
   const [showForm, setShowForm] = useState(false);
   const [editingCollab, setEditingCollab] = useState<IndustryCollaboration | null>(null);
+  const [, startDeleteTransition] = useTransition();
 
-  const [formState, formAction, formPending] = useActionState(createCollaborationAction, { error: null });
-  const [editState, editAction, editPending] = useActionState(updateCollaborationAction, { error: null });
-  const [deleteState, deleteAction, deletePending] = useActionState(deleteCollaborationAction, { error: null });
+  const [formState, formAction, formPending] = useActionState(createCollaborationAction, initialActionState);
+  const [editState, editAction, editPending] = useActionState(updateCollaborationAction, initialActionState);
+  const [, deleteAction] = useActionState(deleteCollaborationAction, initialActionState);
 
-  const handleCreate = async (formData: FormData) => {
-    const result = await formAction(formData);
-    if (result.ok) setShowForm(false);
+  const handleEdit = (collab: IndustryCollaboration) => {
+    setEditingCollab(collab);
+    setShowForm(true);
   };
 
-  const handleUpdate = async (formData: FormData) => {
-    const result = await editAction(formData);
-    if (result.ok) setEditingCollab(null);
-  };
-
-  const handleDelete = async (formData: FormData) => {
-    const result = await deleteAction(formData);
-    if (result.ok) {
-      const id = formData.get("id") as string;
-      setCollaborations(prev => prev.filter(c => c.id !== id));
-    }
+  const handleDeleteClick = (id: string) => {
+    const formData = new FormData();
+    formData.set("id", id);
+    startDeleteTransition(() => deleteAction(formData));
   };
 
   if (!hasMembership) {
@@ -224,14 +221,15 @@ export function CollaborationsClient({ initialCollaborations, hasMembership }: C
         <CollaborationForm
           initialData={editingCollab}
           onCancel={() => { setEditingCollab(null); setShowForm(false); }}
-          onSubmit={editingCollab ? handleUpdate : handleCreate}
+          action={editingCollab ? editAction : formAction}
+          error={editingCollab ? editState.error : formState.error}
           pending={editingCollab ? editPending : formPending}
         />
       ) : (
         <>
-          {collaborations.length > 0 ? (
+          {initialCollaborations.length > 0 ? (
             <Stagger className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {collaborations.map((collab) => (
+              {initialCollaborations.map((collab) => (
                 <StaggerItem key={collab.id}>
                   <CollaborationCard
                     collaboration={collab}

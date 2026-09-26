@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Reveal, Stagger, StaggerItem } from "@/app/_components/motion";
-import { BookOpen, Briefcase, Code, FlaskConical, Users, UserCheck, Calendar, Building2, MapPin, DollarSign, Clock, ArrowRight, ExternalLink, Check } from "lucide-react";
+import { BookOpen, Briefcase, Code, FlaskConical, Users, UserCheck, Calendar, MapPin, DollarSign, Clock, ArrowRight, ExternalLink, Check } from "lucide-react";
 
 const TYPE_CONFIG = {
   faculty_internship: { label: "Faculty Internship", icon: Briefcase, color: "bg-blue-500/10 text-blue-400" },
@@ -14,6 +14,21 @@ const TYPE_CONFIG = {
   guest_lecture: { label: "Guest Lecture", icon: Users, color: "bg-orange-500/10 text-orange-400" },
   mentorship: { label: "Mentorship Program", icon: UserCheck, color: "bg-pink-500/10 text-pink-400" },
 } as const;
+
+interface FacultyOpportunityListItem {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  companies: { name: string | null; logo_url: string | null } | null;
+  duration_weeks: number | null;
+  application_deadline: string | null;
+  location: string | null;
+  stipend_amount: string | null;
+  required_skills: string[] | null;
+  status: string;
+  application_url: string | null;
+}
 
 function TypeBadge({ type }: { type: string }) {
   const config = TYPE_CONFIG[type as keyof typeof TYPE_CONFIG] || { label: type, icon: Users, color: "bg-slate-500/10 text-slate-400" };
@@ -66,6 +81,13 @@ export default async function FacultyOpportunitiesPage() {
     .eq("status", "open")
     .order("created_at", { ascending: false });
 
+  const normalizedOpportunities = (opportunities ?? []).map((opportunity) => ({
+    ...opportunity,
+    companies: Array.isArray(opportunity.companies)
+      ? opportunity.companies[0] ?? null
+      : opportunity.companies,
+  })) as FacultyOpportunityListItem[];
+
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6">
       <Reveal>
@@ -76,9 +98,9 @@ export default async function FacultyOpportunitiesPage() {
         <p className="mt-2 text-sm text-slate-400">Browse FDPs, internships, research collaborations, and consultancy projects from industry partners.</p>
       </Reveal>
 
-      {opportunities && opportunities.length > 0 ? (
+      {normalizedOpportunities.length > 0 ? (
         <Stagger className="mt-8 grid gap-6">
-          {opportunities.map((opp) => (
+          {normalizedOpportunities.map((opp) => (
             <StaggerItem key={opp.id}>
               <OpportunityCard opportunity={opp} hasApplied={appliedIds.has(opp.id)} />
             </StaggerItem>
@@ -97,7 +119,7 @@ export default async function FacultyOpportunitiesPage() {
   );
 }
 
-function OpportunityCard({ opportunity, hasApplied }: { opportunity: any; hasApplied: boolean }) {
+function OpportunityCard({ opportunity, hasApplied }: { opportunity: FacultyOpportunityListItem; hasApplied: boolean }) {
   const config = TYPE_CONFIG[opportunity.type as keyof typeof TYPE_CONFIG] || { label: opportunity.type, icon: Users, color: "bg-slate-500/10 text-slate-400" };
   const Icon = config.icon;
 

@@ -1,11 +1,16 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 
-export async function updateApplicationStatus(applicationId: string, newStatus: string) {
+export const applicationStatuses = ["pending", "reviewed", "shortlisted", "interview", "hired", "rejected"] as const;
+export type ApplicationStatus = (typeof applicationStatuses)[number];
+
+export async function updateApplicationStatus(applicationId: string, newStatus: ApplicationStatus) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+  if (!applicationStatuses.includes(newStatus)) throw new Error("Invalid application status");
 
   const { data: app } = await supabase
     .from("job_applications")
@@ -50,6 +55,8 @@ export async function updateApplicationStatus(applicationId: string, newStatus: 
     p_message: `Your application for "${job.title}" has been ${newStatus.toLowerCase()}.`,
     p_data: { application_id: applicationId, job_id: app.job_id, new_status: newStatus }
   });
+
+  revalidatePath(`/recruiter/jobs/${app.job_id}/applicants`);
 
   return { ok: true };
 }

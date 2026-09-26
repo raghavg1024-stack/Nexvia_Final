@@ -2,7 +2,10 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import type { IndustryCollaboration } from "@/lib/types";
+
+export type CollaborationActionState = { error?: string | null; ok?: boolean };
 
 export async function getCollaborations(): Promise<IndustryCollaboration[]> {
   const supabase = await createClient();
@@ -18,7 +21,7 @@ export async function getCollaborations(): Promise<IndustryCollaboration[]> {
   return collaborations as IndustryCollaboration[] || [];
 }
 
-export async function createCollaborationAction(_prev: { error: string } | { ok: boolean }, formData: FormData): Promise<{ error: string } | { ok: boolean }> {
+export async function createCollaborationAction(_prev: CollaborationActionState, formData: FormData): Promise<CollaborationActionState> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
@@ -62,10 +65,10 @@ export async function createCollaborationAction(_prev: { error: string } | { ok:
   if (error) return { error: error.message };
 
   revalidatePath("/academia/collaborations");
-  return { ok: true };
+  redirect("/academia/collaborations");
 }
 
-export async function updateCollaborationAction(_prev: { error: string } | { ok: boolean }, formData: FormData): Promise<{ error: string } | { ok: boolean }> {
+export async function updateCollaborationAction(_prev: CollaborationActionState, formData: FormData): Promise<CollaborationActionState> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
@@ -108,10 +111,10 @@ export async function updateCollaborationAction(_prev: { error: string } | { ok:
   if (error) return { error: error.message };
 
   revalidatePath("/academia/collaborations");
-  return { ok: true };
+  redirect("/academia/collaborations");
 }
 
-export async function deleteCollaborationAction(_prev: { error: string } | { ok: boolean }, formData: FormData): Promise<{ error: string } | { ok: boolean }> {
+export async function deleteCollaborationAction(_prev: CollaborationActionState, formData: FormData): Promise<CollaborationActionState> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
@@ -136,5 +139,5 @@ export async function deleteCollaborationAction(_prev: { error: string } | { ok:
   if (error) return { error: error.message };
 
   revalidatePath("/academia/collaborations");
-  return { ok: true };
+  redirect("/academia/collaborations");
 }

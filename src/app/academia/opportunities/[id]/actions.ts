@@ -5,7 +5,21 @@ import { revalidatePath } from "next/cache";
 
 export type FacultyApplyActionState = { error?: string | null; ok?: boolean; success?: boolean };
 
-export async function getFacultyOpportunity(id: string) {
+export interface FacultyOpportunityDetails {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  duration_weeks: number | null;
+  application_deadline: string | null;
+  location: string | null;
+  stipend_amount: string | null;
+  max_participants: number | null;
+  required_skills: string[] | null;
+  companies: { name: string | null; logo_url: string | null } | null;
+}
+
+export async function getFacultyOpportunity(id: string): Promise<FacultyOpportunityDetails | null> {
   const supabase = await createClient();
   const { data: opportunity } = await supabase
     .from("faculty_opportunities")
@@ -16,7 +30,9 @@ export async function getFacultyOpportunity(id: string) {
     .eq("id", id)
     .single();
 
-  return opportunity;
+  if (!opportunity) return null;
+  const company = Array.isArray(opportunity.companies) ? opportunity.companies[0] ?? null : opportunity.companies;
+  return { ...opportunity, companies: company } as FacultyOpportunityDetails;
 }
 
 export async function applyToFacultyOpportunityAction(
@@ -40,8 +56,6 @@ export async function applyToFacultyOpportunityAction(
   const experience_years = Number(formData.get("experience_years"));
   const expertise = formData.get("expertise") as string;
   const statement = formData.get("statement") as string;
-  const profile_url = formData.get("profile_url") as string || null;
-
   if (!opportunity_id || !full_name || !designation || !department || !institution || !experience_years || !expertise || !statement) {
     return { error: "All required fields must be filled" };
   }

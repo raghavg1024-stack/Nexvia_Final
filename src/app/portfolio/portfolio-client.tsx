@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
-import { useActionState } from "react";
-import Link from "next/link";
-import { Plus, Edit, Trash2, ExternalLink, Globe, Award, Briefcase, Code, Trophy, BookOpen, Calendar, Building2, MapPin, Star, CheckCircle2, ShieldCheck } from "lucide-react";
-import { Reveal, Stagger, StaggerItem } from "@/app/_components/motion";
+import { useActionState, useCallback, useRef, useState, useTransition } from "react";
+import { Plus, Edit, Trash2, Globe, Award, Briefcase, Code, Trophy, BookOpen, Calendar, Building2, MapPin, Star, ShieldCheck } from "lucide-react";
+import { Stagger, StaggerItem } from "@/app/_components/motion";
 import { createPortfolioItemAction, updatePortfolioItemAction, deletePortfolioItemAction } from "./actions";
+import type { PortfolioActionState } from "./actions";
 import type { PortfolioItem } from "@/lib/types";
 
 const PORTFOLIO_TYPES = [
@@ -24,15 +23,7 @@ const VERIFICATION_STATUS = {
   self_reported: { label: "Self-reported", color: "bg-slate-500/10 text-slate-400", icon: Edit },
 } as const;
 
-function TypeBadge({ type }: { type: string }) {
-  const config = PORTFOLIO_TYPES.find(t => t.value === type) || { label: type, icon: Code, color: "bg-slate-500/10 text-slate-400" };
-  const Icon = config.icon;
-  return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${config.color}`}>
-      <Icon className="h-3 w-3" /> {config.label}
-    </span>
-  );
-}
+const initialActionState: PortfolioActionState = { error: null };
 
 function VerificationBadge({ status }: { status: string }) {
   const config = VERIFICATION_STATUS[status as keyof typeof VERIFICATION_STATUS] || VERIFICATION_STATUS.self_reported;
@@ -96,12 +87,14 @@ function PortfolioCard({ item, onEdit, onDelete }: { item: PortfolioItem; onEdit
 function PortfolioForm({
   initialData,
   onCancel,
-  onSubmit,
+  action,
+  error,
   pending,
 }: {
   initialData?: PortfolioItem | null;
   onCancel: () => void;
-  onSubmit: (formData: FormData) => Promise<void>;
+  action: (formData: FormData) => void;
+  error?: string | null;
   pending: boolean;
 }) {
   const isEditing = !!initialData;
@@ -126,7 +119,7 @@ function PortfolioForm({
         <button type="button" onClick={onCancel} className="text-slate-400 hover:text-slate-200">Cancel</button>
       </div>
 
-      <form onSubmit={onSubmit} className="grid gap-5">
+      <form action={action} className="grid gap-5">
         {isEditing && <input type="hidden" name="id" value={initialData!.id} />}
         <label className="grid gap-2 text-sm font-medium text-slate-300">
           Title *
@@ -197,6 +190,7 @@ function PortfolioForm({
           </label>
         </div>
 
+        {error ? <p role="alert" className="text-sm text-rose-400">{error}</p> : null}
         <div className="flex gap-3">
           <button type="submit" disabled={pending} className="flex-1 rounded-xl bg-accent px-5 py-3 font-semibold text-white transition hover:bg-accent/90 disabled:opacity-60">
             {pending ? "Saving..." : isEditing ? "Update Item" : "Add Item"}
@@ -215,35 +209,13 @@ interface PortfolioClientProps {
 }
 
 export function PortfolioClient({ initialItems }: PortfolioClientProps) {
-  const [items, setItems] = useState<PortfolioItem[]>(initialItems);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<PortfolioItem | null>(null);
+  const [, startDeleteTransition] = useTransition();
 
-  const [formState, formAction, formPending] = useActionState(createPortfolioItemAction, { error: null });
-  const [editState, editAction, editPending] = useActionState(updatePortfolioItemAction, { error: null });
-  const [deleteState, deleteAction, deletePending] = useActionState(deletePortfolioItemAction, { error: null });
-
-  const handleCreate = async (formData: FormData) => {
-    const result = await formAction(formData);
-    if (result.ok) {
-      setShowForm(false);
-      // Refresh would need a server call, for now just close form
-    }
-  };
-
-  const handleUpdate = async (formData: FormData) => {
-    const result = await editAction(formData);
-    if (result.ok) {
-      setEditingItem(null);
-    }
-  };
-
-  const handleDelete = async (formData: FormData) => {
-    const result = await deleteAction(formData);
-    if (result.ok) {
-      setItems(prev => prev.filter(item => item.id !== formData.get("id")));
-    }
-  };
+  const [formState, formAction, formPending] = useActionState(createPortfolioItemAction, initialActionState);
+  const [editState, editAction, editPending] = useActionState(updatePortfolioItemAction, initialActionState);
+  const [, deleteAction] = useActionState(deletePortfolioItemAction, initialActionState);
 
   const handleEdit = (item: PortfolioItem) => {
     setEditingItem(item);
@@ -253,7 +225,7 @@ export function PortfolioClient({ initialItems }: PortfolioClientProps) {
   const handleDeleteClick = (id: string) => {
     const formData = new FormData();
     formData.set("id", id);
-    handleDelete(formData);
+    startDeleteTransition(() => deleteAction(formData));
   };
 
   return (
@@ -273,14 +245,15 @@ export function PortfolioClient({ initialItems }: PortfolioClientProps) {
         <PortfolioForm
           initialData={editingItem}
           onCancel={() => { setEditingItem(null); setShowForm(false); }}
-          onSubmit={editingItem ? handleUpdate : handleCreate}
+          action={editingItem ? editAction : formAction}
+          error={editingItem ? editState.error : formState.error}
           pending={editingItem ? editPending : formPending}
         />
       ) : (
         <>
-          {items.length > 0 ? (
+          {initialItems.length > 0 ? (
             <Stagger className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {items.map((item) => (
+              {initialItems.map((item) => (
                 <StaggerItem key={item.id}>
                   <PortfolioCard
                     item={item}

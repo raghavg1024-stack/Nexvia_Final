@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import type { PortfolioItem } from "@/lib/types";
 
 export type PortfolioActionState = { error?: string | null; ok?: boolean };
@@ -83,7 +84,7 @@ export async function createPortfolioItemAction(
   if (error) return { error: error.message };
 
   revalidatePath("/portfolio");
-  return { ok: true };
+  redirect("/portfolio");
 }
 
 export async function updatePortfolioItemAction(
@@ -136,7 +137,7 @@ export async function updatePortfolioItemAction(
   if (error) return { error: error.message };
 
   revalidatePath("/portfolio");
-  return { ok: true };
+  redirect("/portfolio");
 }
 
 export async function deletePortfolioItemAction(
@@ -156,5 +157,5 @@ export async function deletePortfolioItemAction(
   if (error) return { error: error.message };
 
   revalidatePath("/portfolio");
-  return { ok: true };
+  redirect("/portfolio");
 }
