@@ -16,10 +16,36 @@ const LOGIN_OTP_COOKIE = "login_otp_challenge";
 const LOGIN_OTP_MAX_AGE = 60 * 10;
 
 async function getOrigin() {
+  const configuredOrigin = process.env.NEXT_PUBLIC_SITE_URL ??
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined);
+
+  if (configuredOrigin) {
+    try {
+      const url = new URL(configuredOrigin);
+      if (url.protocol === "https:" || url.protocol === "http:") return url.origin;
+    } catch {}
+  }
+
   const headersList = await headers();
-  const host = headersList.get("host") ?? "localhost:3000";
-  const proto = headersList.get("x-forwarded-proto") ?? "http";
+  const host = headersList.get("host");
+  if (!host) {
+    throw new Error("The application URL is not configured. Set NEXT_PUBLIC_SITE_URL before sending authentication emails.");
+  }
+  const proto = headersList.get("x-forwarded-proto") ?? (process.env.NODE_ENV === "production" ? "https" : "http");
   return `${proto}://${host}`;
+}
+
+function otpDeliveryError(error: { code?: string; message: string; status?: number }) {
+  if (error.code === "over_email_send_rate_limit" || error.status === 429) {
+    return "Too many codes were requested. Please wait a minute before trying again.";
+  }
+  if (error.code === "email_address_not_authorized") {
+    return "This email service is not configured to deliver verification codes to this address. Please contact support.";
+  }
+  if (error.code === "otp_disabled") {
+    return "Email verification is disabled for this project. Please contact support.";
+  }
+  return "We could not send a verification code. Please try again shortly.";
 }
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
@@ -93,12 +119,18 @@ export async function signup(
   if (!fullName) return { error: "Please enter your full name." };
 
   const supabase = await createClient();
+  let emailRedirectTo: string;
+  try {
+    emailRedirectTo = `${await getOrigin()}/auth/callback?next=${encodeURIComponent(portalConfig.signupDestination)}`;
+  } catch {
+    return { error: "The application URL is not configured for email confirmation. Please contact support." };
+  }
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: { full_name: fullName, account_type: portalConfig.accountType },
-      emailRedirectTo: `${await getOrigin()}/auth/callback?next=${encodeURIComponent(portalConfig.signupDestination)}`,
+      emailRedirectTo,
     },
   });
   if (error) return { error: error.message };
@@ -146,7 +178,7 @@ export async function login(
     options: { shouldCreateUser: false },
   });
   if (otpError) {
-    return { error: "We could not send a verification code to this email. Please try again." };
+    return { error: otpDeliveryError(otpError) };
   }
 
   (await cookies()).set(LOGIN_OTP_COOKIE, JSON.stringify({ email, portal }), {
@@ -226,9 +258,7 @@ export async function resendLoginOtp(
     return {
       step: "otp",
       email: challenge.email,
-      error: error.status === 429
-        ? "Please wait about a minute before requesting another code."
-        : "We could not resend the code. Please try again shortly.",
+      error: otpDeliveryError(error),
     };
   }
 
