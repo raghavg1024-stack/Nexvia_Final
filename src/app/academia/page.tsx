@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   ArrowRight,
   BarChart3,
@@ -11,6 +12,7 @@ import {
   Users,
 } from "lucide-react";
 import { Reveal, Stagger, StaggerItem } from "../_components/motion";
+import { createClient } from "@/lib/supabase/server";
 import {
   getInstitutionMetrics,
   getSkillGaps,
@@ -427,6 +429,12 @@ function HeroSection() {
 }
 
 export default async function AcademiaWorkspacePage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user?.user_metadata?.academia_onboarding_complete) {
+    redirect("/academia/setup");
+  }
+
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:py-14">
       <HeroSection />

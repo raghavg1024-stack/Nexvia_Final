@@ -4,27 +4,12 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-
-const navLinks = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/roadmap", label: "My Roadmap" },
-  { href: "/jobs", label: "Jobs" },
-  { href: "/scholarships", label: "Internships & Scholarships" },
-  { href: "/recruiter", label: "Industry Dashboard" },
-  { href: "/academia", label: "Academia Dashboard" },
-  { href: "/mentor", label: "AI Mentor" },
-  { href: "/mock-interview", label: "Mock Interview" },
-  { href: "/resume-analysis", label: "Resume Analysis" },
-  { href: "/community", label: "Community" },
-  { href: "/certificates", label: "Certificates" },
-  { href: "/readiness", label: "Career Readiness" },
-  { href: "/rewards", label: "Rewards" },
-  { href: "/profile", label: "Profile" },
-];
+import { getWorkspaceLinks } from "./workspace-navigation";
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const navLinks = getWorkspaceLinks(pathname);
 
   useEffect(() => {
     if (open) {

@@ -10,6 +10,7 @@ import { Breadcrumbs } from "./_components/breadcrumbs";
 import { CookieConsent } from "./_components/cookie-consent";
 import { SiteAnalytics } from "./_components/site-analytics";
 import { ThemeToggle } from "./_components/theme-toggle";
+import { WorkspaceNavigation } from "./_components/workspace-navigation";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -53,25 +54,6 @@ export const metadata: Metadata = {
   icons: { icon: "/favicon.svg", shortcut: "/favicon.svg", apple: "/favicon.svg" },
   robots: { index: true, follow: true },
 };
-
-const navLinks = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/roadmap", label: "My Roadmap" },
-  { href: "/jobs", label: "Jobs" },
-  { href: "/scholarships", label: "Internships & Scholarships" },
-  { href: "/recruiter", label: "Industry" },
-  { href: "/academia", label: "Academia" },
-  { href: "/mentor", label: "AI Mentor" },
-  { href: "/mock-interview", label: "Mock Interview" },
-  { href: "/resume-analysis", label: "Resume Analysis" },
-  { href: "/community", label: "Community" },
-  { href: "/certificates", label: "Certificates" },
-  { href: "/readiness", label: "Career Readiness" },
-  { href: "/rewards", label: "Rewards" },
-  { href: "/careers", label: "Careers" },
-  { href: "/profile", label: "Profile" },
-  { href: "/parent/access", label: "Parent Portal" },
-];
 
 async function getSessionUser() {
   try {
@@ -124,17 +106,7 @@ export default async function RootLayout({
               <p className="mt-1 text-xs leading-5 text-slate-500">Your career collaboration hub</p>
             </div>
             <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4" aria-label="Workspace links">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  prefetch={false}
-                  className="group flex items-center rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-300 transition-all hover:bg-white/10 hover:text-white"
-                >
-                  <span className="mr-3 h-1.5 w-1.5 rounded-full bg-slate-700 transition-colors group-hover:bg-cyan-300" aria-hidden="true" />
-                  {link.label}
-                </Link>
-              ))}
+              <WorkspaceNavigation />
             </nav>
             <div className="border-t border-white/[.05] p-4">
               <p className="px-1 text-[11px] leading-5 text-slate-500">Private workspace · your data stays protected</p>

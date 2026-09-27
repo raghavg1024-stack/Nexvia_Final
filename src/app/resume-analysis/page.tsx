@@ -37,13 +37,13 @@ export default function ResumeAnalysisPage() {
     <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-6">
       <header className="max-w-3xl">
         <div className="inline-flex items-center gap-2 rounded-full border border-violet-400/25 bg-violet-400/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-violet-200">
-          <Sparkles className="h-3.5 w-3.5" /> Gemini resume intelligence
+          <Sparkles className="h-3.5 w-3.5" /> Resilient resume intelligence
         </div>
         <h1 className="mt-5 font-display text-3xl uppercase tracking-tight text-foreground sm:text-4xl">
           Turn your resume into a stronger application
         </h1>
         <p className="mt-3 leading-7 text-slate-400">
-          Upload a PDF to identify evidence, missing skills, role alignment, and practical improvements. It is sent to Gemini for this analysis and is not permanently stored by Nexvia.
+          Upload a PDF to identify evidence, missing skills, role alignment, and practical improvements. Nexvia can analyse readable resume text locally and uses Gemini only when AI enrichment is available. The PDF is not permanently stored.
         </p>
       </header>
 

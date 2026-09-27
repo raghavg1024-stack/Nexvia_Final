@@ -78,13 +78,6 @@ const quickActions = [
   //   gradient: "from-cyan-500 to-blue-500",
   // },
   {
-    href: "/academia",
-    title: "Academia Workspace",
-    description: "See how institutions close classroom-to-career skill gaps.",
-    icon: "▦",
-    gradient: "from-cyan-500 to-blue-500",
-  },
-  {
     href: "/profile",
     title: "Profile",
     description: "Update your goals and learning style.",
