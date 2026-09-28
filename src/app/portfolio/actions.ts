@@ -7,6 +7,28 @@ import type { PortfolioItem } from "@/lib/types";
 
 export type PortfolioActionState = { error?: string | null; ok?: boolean };
 
+function resolveVerificationStatus(formData: FormData, url: string | null) {
+  const requested = formData.get("request_verification") === "on";
+  if (!requested) return { status: "self_reported" as const, error: null };
+  if (!url) {
+    return {
+      status: "self_reported" as const,
+      error: "Add a public evidence URL before requesting verification.",
+    };
+  }
+
+  try {
+    const parsedUrl = new URL(url);
+    if (parsedUrl.protocol !== "https:" && parsedUrl.protocol !== "http:") {
+      return { status: "self_reported" as const, error: "Evidence URL must use http or https." };
+    }
+  } catch {
+    return { status: "self_reported" as const, error: "Enter a valid evidence URL." };
+  }
+
+  return { status: "pending_verification" as const, error: null };
+}
+
 export async function getPortfolioItems(): Promise<PortfolioItem[]> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -41,11 +63,12 @@ export async function createPortfolioItemAction(
   const url = formData.get("url") as string || null;
   const image_url = formData.get("image_url") as string || null;
   const is_featured = formData.get("is_featured") === "on";
-  const verification_status = formData.get("verification_status") as string || "self_reported";
+  const verification = resolveVerificationStatus(formData, url);
 
   if (!title || !type) {
     return { error: "Title and type are required" };
   }
+  if (verification.error) return { error: verification.error };
 
   let skillsArray: string[] = [];
   try {
@@ -77,7 +100,9 @@ export async function createPortfolioItemAction(
     url,
     image_url,
     is_featured,
-    verification_status,
+    verification_status: verification.status,
+    verification_source: verification.status === "pending_verification" ? url : null,
+    verification_id: null,
     display_order,
   });
 
@@ -107,10 +132,11 @@ export async function updatePortfolioItemAction(
   const url = formData.get("url") as string || null;
   const image_url = formData.get("image_url") as string || null;
   const is_featured = formData.get("is_featured") === "on";
-  const verification_status = formData.get("verification_status") as string || "self_reported";
+  const verification = resolveVerificationStatus(formData, url);
 
   const { data: item } = await supabase.from("portfolio_items").select("user_id").eq("id", id).single();
   if (!item || item.user_id !== user.id) return { error: "Not authorized to update this item" };
+  if (verification.error) return { error: verification.error };
 
   let skillsArray: string[] = [];
   try {
@@ -131,7 +157,9 @@ export async function updatePortfolioItemAction(
     url,
     image_url,
     is_featured,
-    verification_status,
+    verification_status: verification.status,
+    verification_source: verification.status === "pending_verification" ? url : null,
+    verification_id: null,
   }).eq("id", id);
 
   if (error) return { error: error.message };

@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useCallback, useRef, useState, useTransition } from "react";
-import { Plus, Edit, Trash2, Globe, Award, Briefcase, Code, Trophy, BookOpen, Calendar, Building2, MapPin, Star, ShieldCheck } from "lucide-react";
+import { Plus, Edit, Trash2, Globe, Award, Briefcase, Code, Trophy, BookOpen, Calendar, Building2, MapPin, Star, ShieldCheck, Clock3, FileCheck2 } from "lucide-react";
 import { Stagger, StaggerItem } from "@/app/_components/motion";
 import { createPortfolioItemAction, updatePortfolioItemAction, deletePortfolioItemAction } from "./actions";
 import type { PortfolioActionState } from "./actions";
@@ -175,18 +175,14 @@ function PortfolioForm({
           Image URL (optional)
           <input name="image_url" type="url" defaultValue={initialData?.image_url || ""} className="rounded-xl border border-line bg-background px-4 py-3 text-slate-100 outline-none focus:border-accent" placeholder="https://example.com/screenshot.png" />
         </label>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-4 rounded-xl border border-line bg-background/60 p-4 sm:flex-row sm:items-center sm:justify-between">
           <label className="flex items-center gap-2 text-sm text-slate-300">
             <input name="is_featured" type="checkbox" defaultChecked={initialData?.is_featured || false} className="rounded border-line" />
             Feature on profile
           </label>
-          <label className="flex items-center gap-2 text-sm text-slate-300">
-            <select name="verification_status" defaultValue={initialData?.verification_status || "self_reported"} className="rounded-xl border border-line bg-background px-3 py-2 text-sm text-slate-100 outline-none focus:border-accent">
-              <option value="self_reported">Self-reported</option>
-              <option value="pending_verification">Pending Verification</option>
-              <option value="verified">Verified</option>
-            </select>
-            Verification Status
+          <label className="flex max-w-md items-start gap-3 text-sm text-slate-300">
+            <input name="request_verification" type="checkbox" defaultChecked={initialData?.verification_status === "pending_verification" || initialData?.verification_status === "verified"} className="mt-1 rounded border-line" />
+            <span><span className="font-semibold text-foreground">Request evidence verification</span><span className="mt-1 block text-xs leading-5 text-slate-500">A reviewer checks the public URL. Editing a verified item sends it back for review.</span></span>
           </label>
         </div>
 
@@ -216,6 +212,8 @@ export function PortfolioClient({ initialItems }: PortfolioClientProps) {
   const [formState, formAction, formPending] = useActionState(createPortfolioItemAction, initialActionState);
   const [editState, editAction, editPending] = useActionState(updatePortfolioItemAction, initialActionState);
   const [, deleteAction] = useActionState(deletePortfolioItemAction, initialActionState);
+  const verifiedCount = initialItems.filter((item) => item.verification_status === "verified").length;
+  const pendingCount = initialItems.filter((item) => item.verification_status === "pending_verification").length;
 
   const handleEdit = (item: PortfolioItem) => {
     setEditingItem(item);
@@ -230,6 +228,11 @@ export function PortfolioClient({ initialItems }: PortfolioClientProps) {
 
   return (
     <div className="mt-8">
+      <div className="mb-8 grid gap-3 sm:grid-cols-3">
+        <div className="rounded-2xl border border-line bg-card p-4"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400"><FileCheck2 className="h-5 w-5" /></span><div><p className="text-2xl font-bold text-foreground">{initialItems.length}</p><p className="text-xs text-slate-500">Evidence items</p></div></div></div>
+        <div className="rounded-2xl border border-line bg-card p-4"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400"><ShieldCheck className="h-5 w-5" /></span><div><p className="text-2xl font-bold text-foreground">{verifiedCount}</p><p className="text-xs text-slate-500">Reviewer verified</p></div></div></div>
+        <div className="rounded-2xl border border-line bg-card p-4"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400"><Clock3 className="h-5 w-5" /></span><div><p className="text-2xl font-bold text-foreground">{pendingCount}</p><p className="text-xs text-slate-500">Awaiting review</p></div></div></div>
+      </div>
       <div className="flex items-center justify-between">
         <h2 className="font-display text-xl uppercase tracking-tight text-foreground">Your Portfolio</h2>
         <button
