@@ -39,18 +39,17 @@ export function ParentCallSettings({
           inputMode="tel"
           autoComplete="tel"
           defaultValue={phone ?? ""}
-          disabled={!studentConsent}
           placeholder="+919876543210"
           aria-label="Phone number for progress calls"
-          className="mt-3 w-full rounded-lg border border-line bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-cyan-300 disabled:opacity-50"
+          className="mt-3 w-full rounded-lg border border-line bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-cyan-300"
         />
         <label className="mt-3 flex items-start gap-2 text-xs leading-5 text-slate-300">
           <input name="enabled" type="checkbox" defaultChecked={enabled} disabled={!studentConsent} className="mt-1 accent-cyan-400" />
           I consent to receiving automated progress calls at this number.
         </label>
-        {!studentConsent ? <p className="mt-3 text-xs text-amber-300">Learner consent is required. Ask the learner to generate a new code with call permission enabled.</p> : null}
-        <button disabled={pending || !studentConsent} className="mt-4 rounded-lg bg-accent px-4 py-2 text-xs font-bold text-white disabled:opacity-50">
-          {pending ? "Saving..." : "Save call settings"}
+        {!studentConsent ? <p className="mt-3 text-xs text-amber-300">You can save the phone number now. Calling stays locked until the learner generates a new code with call permission enabled and you redeem it.</p> : null}
+        <button disabled={pending} className="mt-4 rounded-lg bg-accent px-4 py-2 text-xs font-bold text-white disabled:opacity-50">
+          {pending ? "Saving..." : studentConsent ? "Save call settings" : "Save phone number"}
         </button>
         {state.message ? <p role="status" className={`mt-3 text-xs ${state.ok ? "text-emerald-300" : "text-rose-300"}`}>{state.message}</p> : null}
       </form>

@@ -191,7 +191,7 @@ export async function saveParentCallPreferences(
   const enabled = formData.get("enabled") === "on";
 
   if (!linkId) return { ok: false, message: "The linked learner could not be identified." };
-  if (enabled && !/^\+[1-9][0-9]{7,14}$/.test(phone)) {
+  if (phone && !/^\+[1-9][0-9]{7,14}$/.test(phone)) {
     return { ok: false, message: "Enter the phone number with country code, for example +919876543210." };
   }
 
@@ -223,7 +223,14 @@ export async function saveParentCallPreferences(
   if (error) return { ok: false, message: "Could not save call preferences. Please try again." };
 
   revalidatePath("/parent/access");
-  return { ok: true, message: enabled ? "Overdue-task calls are enabled." : "Overdue-task calls are turned off." };
+  return {
+    ok: true,
+    message: enabled
+      ? "Overdue-task calls are enabled."
+      : phone
+        ? "Phone number saved. Calls remain off until both consent settings are enabled."
+        : "Overdue-task calls are turned off.",
+  };
 }
 
 export async function sendParentTestCall(
