@@ -1,17 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useActionState, useEffect, useState } from "react";
 import { CircleStop, PhoneCall, Volume2 } from "lucide-react";
+import { sendParentTestCall, type ParentActionState } from "@/lib/parent";
+
+const initialState: ParentActionState = { ok: false };
 
 type DemoParentCallProps = {
   studentName: string;
   taskTitle: string;
   daysOverdue: number;
+  linkId?: string | null;
 };
 
-export function DemoParentCall({ studentName, taskTitle, daysOverdue }: DemoParentCallProps) {
+export function DemoParentCall({ studentName, taskTitle, daysOverdue, linkId }: DemoParentCallProps) {
   const [speaking, setSpeaking] = useState(false);
   const [supported, setSupported] = useState(true);
+  const [callState, callAction, callPending] = useActionState(sendParentTestCall, initialState);
   const message = `Hello. This is a supportive progress update from Nexvia. ${studentName}'s roadmap task, ${taskTitle}, is ${daysOverdue} day${daysOverdue === 1 ? "" : "s"} overdue. Please check in calmly and help plan one small next step. This is not an emergency or a disciplinary alert.`;
 
   useEffect(() => () => window.speechSynthesis?.cancel(), []);
@@ -45,7 +51,7 @@ export function DemoParentCall({ studentName, taskTitle, daysOverdue }: DemoPare
           </p>
           <h3 className="mt-2 text-lg font-bold text-foreground">Hear the overdue-task call</h3>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
-            This browser-only preview demonstrates the calm message a consenting parent would receive. It does not dial a phone number or save any data.
+            Preview the calm message here. A linked parent can save a consented phone number in the Parent Portal and use Call saved number now to receive this message as a real phone call.
           </p>
         </div>
         <button
@@ -61,6 +67,28 @@ export function DemoParentCall({ studentName, taskTitle, daysOverdue }: DemoPare
         <p className="text-xs font-bold uppercase tracking-[.14em] text-slate-500">Call transcript</p>
         <p className="mt-2 text-sm leading-6 text-foreground">{message}</p>
         {!supported ? <p className="mt-2 text-xs text-amber-500">Audio playback is unavailable in this browser. The transcript above shows the complete demo message.</p> : null}
+      </div>
+      <div className="border-t border-line px-5 py-4">
+        {linkId ? (
+          <form action={callAction}>
+            <input type="hidden" name="linkId" value={linkId} />
+            <p className="text-xs leading-5 text-slate-500">
+              This places a real call to the number saved in Parent Portal settings. Carrier charges may apply.
+            </p>
+            <button
+              disabled={callPending}
+              className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-400/40 bg-cyan-400/10 px-4 py-2.5 text-sm font-bold text-cyan-500 transition hover:bg-cyan-400/20 disabled:opacity-50"
+            >
+              <PhoneCall className="h-4 w-4" aria-hidden="true" />
+              {callPending ? "Calling..." : "Call saved number now"}
+            </button>
+            {callState.message ? <p role="status" className={`mt-3 text-xs ${callState.ok ? "text-emerald-500" : "text-rose-500"}`}>{callState.message}</p> : null}
+          </form>
+        ) : (
+          <p className="text-xs leading-5 text-slate-500">
+            To place a real call, <Link href="/parent/access" className="font-semibold text-accent hover:underline">link a learner and save a consented phone number</Link> first.
+          </p>
+        )}
       </div>
     </div>
   );

@@ -171,11 +171,12 @@ export default async function ParentDashboardPage({ searchParams }: PageProps) {
               </div>
             ))}
           </div>
-          {isDemo && firstOverdueTask ? (
+          {firstOverdueTask ? (
             <DemoParentCall
               studentName={data.student.name.split(" ")[0] || "your learner"}
               taskTitle={firstOverdueTask.title}
               daysOverdue={firstOverdueTask.days_overdue}
+              linkId={role === "parent" ? linkId : null}
             />
           ) : null}
         </section>

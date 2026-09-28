@@ -2,6 +2,8 @@
 
 import { createHash, randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import { placeTwilioCall, twilioIsConfigured } from "@/lib/parent-calls";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export type ParentActionState = {
@@ -222,6 +224,117 @@ export async function saveParentCallPreferences(
 
   revalidatePath("/parent/access");
   return { ok: true, message: enabled ? "Overdue-task calls are enabled." : "Overdue-task calls are turned off." };
+}
+
+export async function sendParentTestCall(
+  _previous: ParentActionState,
+  formData: FormData,
+): Promise<ParentActionState> {
+  void _previous;
+  const linkId = String(formData.get("linkId") ?? "");
+  if (!linkId) return { ok: false, message: "The linked learner could not be identified." };
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, message: "Sign in through the Parent Portal first." };
+
+  const { data: link } = await supabase
+    .from("parent_links")
+    .select("id, student_user_id, student_call_consent_at, parent_call_consent_at, parent_phone, overdue_call_enabled")
+    .eq("id", linkId)
+    .eq("parent_user_id", user.id)
+    .eq("status", "active")
+    .maybeSingle();
+  if (!link) return { ok: false, message: "This parent link is no longer active." };
+  if (!link.student_call_consent_at || !link.parent_call_consent_at || !link.overdue_call_enabled) {
+    return { ok: false, message: "Enable calls and save the consent settings before placing a test call." };
+  }
+  if (!link.parent_phone || !/^\+[1-9][0-9]{7,14}$/.test(link.parent_phone)) {
+    return { ok: false, message: "Save a valid phone number with country code before placing a test call." };
+  }
+  if (!twilioIsConfigured()) {
+    return { ok: false, message: "Real calling is not configured yet. Add the Twilio environment variables in Vercel first." };
+  }
+
+  const [{ data: dashboardValue }, { data: overdueValue }] = await Promise.all([
+    supabase.rpc("get_parent_dashboard", { target_student_id: link.student_user_id }),
+    supabase.rpc("get_parent_overdue_tasks", { target_student_id: link.student_user_id }),
+  ]);
+  const dashboard = safeDashboard(dashboardValue);
+  const overdueTasks = Array.isArray(overdueValue)
+    ? overdueValue as NonNullable<ParentDashboardData["overdue_tasks"]>
+    : [];
+  const task = overdueTasks[0];
+  if (!dashboard || !task) {
+    return { ok: false, message: "There is no overdue task to include in a progress call right now." };
+  }
+
+  let admin: ReturnType<typeof createAdminClient>;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return { ok: false, message: "Secure call logging is not configured yet. Add the Supabase service-role key in Vercel first." };
+  }
+  const { data: existing } = await admin
+    .from("parent_alerts")
+    .select("id, attempted_at, attempt_count")
+    .eq("parent_link_id", link.id)
+    .eq("course_id", task.id)
+    .eq("alert_kind", "overdue_course")
+    .maybeSingle();
+  if (existing && new Date(existing.attempted_at).getTime() > Date.now() - 10 * 60 * 1000) {
+    return { ok: false, message: "A call was attempted recently. Please wait 10 minutes before trying again." };
+  }
+  if (existing && existing.attempt_count >= 3) {
+    return { ok: false, message: "The three-call limit for this overdue task has been reached." };
+  }
+
+  const firstName = dashboard.student.name.trim().split(" ")[0] || "your learner";
+  const message = `Hello. This is a supportive progress update from Nexvia. ${firstName}'s roadmap task, ${task.title}, is ${task.days_overdue} day${task.days_overdue === 1 ? "" : "s"} overdue. Please check in calmly and help plan one small next step. This is not an emergency or a disciplinary alert.`;
+  const attemptedAt = new Date().toISOString();
+  const alertResult = existing
+    ? await admin
+        .from("parent_alerts")
+        .update({
+          status: "processing",
+          message,
+          attempted_at: attemptedAt,
+          completed_at: null,
+          error_message: null,
+          attempt_count: existing.attempt_count + 1,
+        })
+        .eq("id", existing.id)
+        .select("id")
+        .single()
+    : await admin
+        .from("parent_alerts")
+        .insert({
+          parent_link_id: link.id,
+          student_user_id: link.student_user_id,
+          course_id: task.id,
+          message,
+        })
+        .select("id")
+        .single();
+  if (alertResult.error || !alertResult.data) {
+    return { ok: false, message: "The call could not be queued. Please try again later." };
+  }
+
+  try {
+    const callId = await placeTwilioCall(link.parent_phone, message);
+    await admin
+      .from("parent_alerts")
+      .update({ status: "sent", provider_call_id: callId, completed_at: new Date().toISOString() })
+      .eq("id", alertResult.data.id);
+    return { ok: true, message: `Call started to the saved number ending in ${link.parent_phone.slice(-4)}.` };
+  } catch (caught) {
+    const errorMessage = caught instanceof Error ? caught.message.slice(0, 400) : "Unknown calling error";
+    await admin
+      .from("parent_alerts")
+      .update({ status: "failed", error_message: errorMessage, completed_at: new Date().toISOString() })
+      .eq("id", alertResult.data.id);
+    return { ok: false, message: "The calling provider could not place the call. Check the Twilio number and account settings." };
+  }
 }
 
 export async function redeemParentInvite(
