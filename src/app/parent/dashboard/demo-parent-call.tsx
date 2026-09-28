@@ -51,7 +51,7 @@ export function DemoParentCall({ studentName, taskTitle, daysOverdue, linkId }: 
           </p>
           <h3 className="mt-2 text-lg font-bold text-foreground">Hear the overdue-task call</h3>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
-            Preview the opening update here. A linked parent can save a consented phone number and use Call saved number now for a real two-way conversation with Nexvia&apos;s AI assistant.
+            Preview the opening update here. A linked parent can save a consented phone number and use Call saved number now for a real AI conversation. The assistant listens and responds one question at a time.
           </p>
         </div>
         <button
@@ -73,7 +73,7 @@ export function DemoParentCall({ studentName, taskTitle, daysOverdue, linkId }: 
           <form action={callAction}>
             <input type="hidden" name="linkId" value={linkId} />
             <p className="text-xs leading-5 text-slate-500">
-              This places a real two-way AI call to the number saved in Parent Portal settings. Carrier and AI voice charges may apply.
+              This places a real turn-by-turn AI call to the number saved in Parent Portal settings. Twilio trial accounts can call verified numbers only.
             </p>
             <button
               disabled={callPending}
