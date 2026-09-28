@@ -26,6 +26,7 @@ export async function postJobAction(prevState: any, formData: FormData) {
   const eligible_majors = majorsRaw ? majorsRaw.split(",").map(s => s.trim()).filter(Boolean).slice(0, 30) : [];
   const location = String(formData.get("location") ?? "").trim();
   const applicationUrlInput = String(formData.get("application_url") ?? "").trim();
+  const application_deadline = String(formData.get("application_deadline") ?? "").trim() || null;
   
   const cgpaRaw = formData.get("min_cgpa");
   const min_cgpa = cgpaRaw && String(cgpaRaw).trim() !== "" ? Number(cgpaRaw) : null;
@@ -63,6 +64,8 @@ export async function postJobAction(prevState: any, formData: FormData) {
       eligible_majors,
       location: location || null,
       application_url,
+      application_deadline,
+      moderation_status: "pending",
       status: "open",
     });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

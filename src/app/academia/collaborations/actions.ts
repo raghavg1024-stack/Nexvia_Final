@@ -12,10 +12,11 @@ export async function getCollaborations(): Promise<IndustryCollaboration[]> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
 
+  const { data: institution } = await supabase.from("institutions").select("id").eq("owner_id", user.id).maybeSingle();
   const { data: collaborations } = await supabase
     .from("industry_collaborations")
     .select("*")
-    .or(`institution_id.eq.${user.id},academician_id.eq.${user.id}`)
+    .or(`institution_id.eq.${institution?.id ?? "00000000-0000-0000-0000-000000000000"},academician_id.eq.${user.id}`)
     .order("created_at", { ascending: false });
 
   return collaborations as IndustryCollaboration[] || [];
@@ -43,6 +44,9 @@ export async function createCollaborationAction(_prev: CollaborationActionState,
   const companyId = profile.data.user_type === "recruiter"
     ? (await supabase.from("company_members").select("company_id").eq("user_id", user.id).single()).data?.company_id
     : null;
+  const institutionId = profile.data.user_type === "academia"
+    ? (await supabase.from("institutions").select("id").eq("owner_id", user.id).single()).data?.id
+    : null;
 
   if (profile.data.user_type === "recruiter" && !companyId) {
     return { error: "No company linked to your account" };
@@ -50,7 +54,7 @@ export async function createCollaborationAction(_prev: CollaborationActionState,
 
   const { error } = await supabase.from("industry_collaborations").insert({
     company_id: companyId!,
-    institution_id: profile.data.user_type === "academia" ? user.id : null,
+    institution_id: institutionId,
     academician_id: profile.data.user_type === "academia" ? user.id : null,
     title,
     type,
@@ -60,6 +64,7 @@ export async function createCollaborationAction(_prev: CollaborationActionState,
     status,
     participants,
     outcomes,
+    moderation_status: "pending",
   });
 
   if (error) return { error: error.message };
@@ -86,7 +91,8 @@ export async function updateCollaborationAction(_prev: CollaborationActionState,
   const { data: collab } = await supabase.from("industry_collaborations").select("*").eq("id", id).single();
   if (!collab) return { error: "Collaboration not found" };
 
-  const canUpdate = collab.institution_id === user.id || collab.academician_id === user.id;
+  const { data: institution } = await supabase.from("institutions").select("id").eq("owner_id", user.id).maybeSingle();
+  const canUpdate = collab.institution_id === institution?.id || collab.academician_id === user.id;
   if (!canUpdate) {
     const { data: membership } = await supabase
       .from("company_members")
@@ -106,6 +112,10 @@ export async function updateCollaborationAction(_prev: CollaborationActionState,
     status,
     participants,
     outcomes,
+    moderation_status: "pending",
+    moderated_by: null,
+    moderated_at: null,
+    moderation_notes: null,
   }).eq("id", id);
 
   if (error) return { error: error.message };
@@ -124,7 +134,8 @@ export async function deleteCollaborationAction(_prev: CollaborationActionState,
   const { data: collab } = await supabase.from("industry_collaborations").select("*").eq("id", id).single();
   if (!collab) return { error: "Collaboration not found" };
 
-  const canDelete = collab.institution_id === user.id || collab.academician_id === user.id;
+  const { data: institution } = await supabase.from("institutions").select("id").eq("owner_id", user.id).maybeSingle();
+  const canDelete = collab.institution_id === institution?.id || collab.academician_id === user.id;
   if (!canDelete) {
     const { data: membership } = await supabase
       .from("company_members")

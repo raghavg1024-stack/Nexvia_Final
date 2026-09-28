@@ -70,6 +70,12 @@ export default function PostJobPage() {
           <input type="url" id="application_url" name="application_url" className="mt-1 block w-full rounded-lg border border-line bg-background px-3 py-2 text-slate-200 focus:border-accent focus:ring-1 focus:ring-accent" placeholder="https://company.com/apply" />
         </div>
 
+        <div>
+          <label htmlFor="application_deadline" className="block text-sm font-medium text-slate-300">Application deadline</label>
+          <input type="date" id="application_deadline" name="application_deadline" className="mt-1 block w-full rounded-lg border border-line bg-background px-3 py-2 text-foreground focus:border-accent focus:ring-1 focus:ring-accent" />
+          <p className="mt-1 text-xs text-slate-500">Applicants receive in-app and email reminders before this date.</p>
+        </div>
+
         {state?.error && (
           <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400">
             {state.error}

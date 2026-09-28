@@ -71,7 +71,8 @@ export async function createFacultyOpportunityAction(
     required_skills: skillsArray,
     application_url,
     max_participants,
-    status,
+    status: status === "open" ? "draft" : status,
+    moderation_status: "pending",
   });
 
   if (error) return { error: error.message };
@@ -128,7 +129,11 @@ export async function updateFacultyOpportunityAction(
     required_skills: skillsArray,
     application_url,
     max_participants,
-    status,
+    status: status === "open" ? "draft" : status,
+    moderation_status: "pending",
+    moderated_by: null,
+    moderated_at: null,
+    moderation_notes: null,
   }).eq("id", id);
 
   if (error) return { error: error.message };

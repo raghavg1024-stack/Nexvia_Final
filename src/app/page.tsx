@@ -85,19 +85,19 @@ const pathway = [
 ] as const;
 
 const deliveryRoadmap = [
-  { icon: ShieldCheck, title: "Evidence verification", status: "Live foundation", tone: "emerald", description: "Students can submit public evidence for review without self-awarding a verified badge." },
-  { icon: Bell, title: "Reliable notifications", status: "In-app live", tone: "blue", description: "Application and workflow updates are available in-app; email and push delivery are next." },
-  { icon: CircleGauge, title: "Impact analytics", status: "Next", tone: "amber", description: "Placement rate, roadmap completion, readiness improvement, and accepted recommendations." },
-  { icon: Languages, title: "Multilingual access", status: "Planned", tone: "slate", description: "English first, followed by Hindi and a regional-language pilot with reviewed terminology." },
-  { icon: Network, title: "Employer upskilling", status: "Planned", tone: "slate", description: "Employee cohorts, team skill-gap reports, and training assignment workflows." },
-  { icon: LockKeyhole, title: "Admin moderation", status: "Next", tone: "amber", description: "Approval queues for institutions, recruiters, opportunities, and submitted evidence." },
+  { icon: ShieldCheck, title: "Evidence verification", status: "Live", tone: "emerald", description: "Students submit project, skill, and certificate evidence for accountable institution or recruiter review." },
+  { icon: Bell, title: "Reliable notifications", status: "Live", tone: "emerald", description: "In-app and retry-safe email alerts cover matches, application updates, training, verification, and deadlines." },
+  { icon: CircleGauge, title: "Impact analytics", status: "Live", tone: "emerald", description: "Placement rate, roadmap completion, readiness improvement, accepted recommendations, and verified opportunity metrics." },
+  { icon: Languages, title: "Multilingual access", status: "Core live", tone: "blue", description: "Saved English, Hindi, and Marathi preferences translate the workspace navigation and establish the localization layer." },
+  { icon: Network, title: "Employer upskilling", status: "Live", tone: "emerald", description: "Employee cohorts, team skill-gap reports, readiness tracking, and cohort training assignments." },
+  { icon: LockKeyhole, title: "Admin moderation", status: "Live", tone: "emerald", description: "Approval queues for institutions, recruiters, jobs, FDPs, research posts, and submitted evidence." },
 ] as const;
 
 const faqs = [
   ["Is Nexvia using BERT or gradient-boosting ranking today?", "No. Current matching is explainable and based on assessment, keyword, eligibility, and weighted scoring. More advanced models should only be introduced after evaluation data and monitoring are in place."],
   ["Does a portfolio item become verified when a student adds it?", "No. New evidence is self-reported. A learner may request review by attaching a public evidence URL, and only an authorized review workflow should grant verified status."],
-  ["Which workflows are already available?", "The main student, academia, recruiter, community, and parent journeys are present, including assessment, roadmaps, readiness, opportunities, applications, and in-app notifications."],
-  ["What is still being built?", "Full moderation, external notification delivery, multilingual experiences, employer upskilling, advanced ML ranking, and campus-scale controls remain roadmap items."],
+  ["Which workflows are already available?", "Student, academia, recruiter, community, parent, verification, moderation, employer upskilling, impact analytics, multilingual navigation, and email notification workflows are available."],
+  ["What is still being built?", "Advanced ML ranking remains an evidence-led research item. Current matching stays explainable until a trained model can be validated for quality, bias, monitoring, and safe fallback behavior."],
 ] as const;
 
 const statusTone = {

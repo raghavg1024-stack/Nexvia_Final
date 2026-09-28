@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/parent-alerts",
       "schedule": "30 4 * * *"
+    },
+    {
+      "path": "/api/cron/notifications",
+      "schedule": "15 * * * *"
     }
   ]
 }

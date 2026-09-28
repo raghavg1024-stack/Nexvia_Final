@@ -420,7 +420,7 @@ export async function applyToJob(jobId: string) {
   }
 }
 
-export async function createJob(companyId: string, data: Partial<Job>) {
+export async function createJob(companyId: string, data: Partial<Job> & { application_deadline?: string | null; moderation_status?: "pending" }) {
   const supabase = await createClient();
   const { error } = await supabase.from("jobs").insert({
     company_id: companyId,

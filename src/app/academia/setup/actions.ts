@@ -88,6 +88,20 @@ export async function saveAcademiaSetup(
     .eq("id", user.id);
   if (profileError) return { error: profileError.message };
 
+  const { error: institutionError } = await supabase.from("institutions").upsert({
+    owner_id: user.id,
+    name: institution,
+    website: linkedIn || null,
+    location: location || null,
+    description: professionalSummary,
+    moderation_status: "pending",
+    moderated_by: null,
+    moderated_at: null,
+    moderation_notes: null,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: "owner_id" });
+  if (institutionError) return { error: institutionError.message };
+
   const academiaProfile = {
     institution,
     designation,

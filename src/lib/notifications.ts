@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 export interface Notification {
   id: string;
   user_id: string;
-  type: "application_status" | "streak_reminder" | "weekly_recap" | "system";
+  type: "application_status" | "streak_reminder" | "weekly_recap" | "system" | "match" | "deadline" | "verification" | "training";
   title: string;
   message: string;
   data: Record<string, unknown> | null;
@@ -17,6 +17,13 @@ export async function getNotifications(limit = 20, unreadOnly = false): Promise<
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
+
+  const { data: preferences } = await supabase
+    .from("notification_preferences")
+    .select("in_app_enabled")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (preferences?.in_app_enabled === false) return [];
 
   let query = supabase
     .from("notifications")
@@ -67,6 +74,13 @@ export async function getUnreadCount(): Promise<number> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return 0;
+
+  const { data: preferences } = await supabase
+    .from("notification_preferences")
+    .select("in_app_enabled")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (preferences?.in_app_enabled === false) return 0;
 
   const { count } = await supabase
     .from("notifications")

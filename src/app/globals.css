@@ -12,6 +12,9 @@
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
+  --sidebar-text: #334155;
+  --sidebar-muted: #64748b;
+  --sidebar-strong: #0f172a;
 }
 
 html {
@@ -530,11 +533,19 @@ body::before {
 }
 
 .industry-header,
-.industry-sidebar,
 .industry-footer {
   background: #0f172a !important;
   color: #ffffff;
 }
+
+.industry-sidebar {
+  background: #ffffff !important;
+  color: #0f172a;
+}
+
+.industry-sidebar .text-sidebar-text { color: var(--sidebar-text); }
+.industry-sidebar .text-sidebar-muted { color: var(--sidebar-muted); }
+.industry-sidebar .text-sidebar-strong { color: var(--sidebar-strong); }
 
 .industry-header .text-foreground,
 .industry-sidebar .text-foreground,
@@ -588,6 +599,14 @@ body::before {
   --success: #22c55e;
   --warning: #f59e0b;
   --danger: #ef4444;
+  --sidebar-text: #93a4bf;
+  --sidebar-muted: #64748b;
+  --sidebar-strong: #f8fafc;
+}
+
+:root[data-theme="dark"] .industry-sidebar {
+  background: #0f172a !important;
+  color: #ffffff;
 }
 
 :root[data-theme="dark"] body {
@@ -802,12 +821,56 @@ body::before {
   backdrop-filter: blur(22px) saturate(130%);
 }
 
-.bridge-growth .nexvia-public {
+:root[data-theme="dark"] .bridge-growth .nexvia-public {
   background: #070b14 !important;
 }
 
-.bridge-growth .nexvia-public [class*="bg-[#0"] {
+:root[data-theme="dark"] .bridge-growth .nexvia-public [class*="bg-[#0"] {
   background-color: #0d1626 !important;
+}
+
+:root[data-theme="light"] .nexvia-public {
+  background: #ffffff !important;
+  color: #0f172a;
+  color-scheme: light;
+}
+
+:root[data-theme="light"] .nexvia-public .nexvia-nav {
+  border-bottom-color: #dbeafe;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+:root[data-theme="light"] .nexvia-public [class*="bg-[#0"],
+:root[data-theme="light"] .nexvia-public [class*="bg-[#1"] {
+  background-color: #eaf2ff !important;
+}
+
+:root[data-theme="light"] .nexvia-public [class*="border-[#1"],
+:root[data-theme="light"] .nexvia-public [class*="border-[#2"] {
+  border-color: #bfdbfe !important;
+}
+
+:root[data-theme="light"] .nexvia-public [class*="text-[#f"],
+:root[data-theme="light"] .nexvia-public [class*="text-[#e"],
+:root[data-theme="light"] .nexvia-public [class*="text-[#d"] {
+  color: #0f172a !important;
+}
+
+:root[data-theme="light"] .nexvia-public [class*="text-[#9"],
+:root[data-theme="light"] .nexvia-public [class*="text-[#8"],
+:root[data-theme="light"] .nexvia-public [class*="text-[#7"] {
+  color: #475569 !important;
+}
+
+:root[data-theme="light"] .nexvia-public .text-white,
+:root[data-theme="light"] .nexvia-public a.bg-white,
+:root[data-theme="light"] .nexvia-public button.bg-white {
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .nexvia-public [class*="bg-blue"].text-white,
+:root[data-theme="light"] .nexvia-public [class*="bg-[#3"].text-white {
+  color: #ffffff !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { getWorkspaceLinks } from "./workspace-navigation";
+import { getWorkspaceLinks, type WorkspaceRole } from "./workspace-navigation";
+import { useLanguage } from "./language-provider";
 
-export function MobileNav() {
+export function MobileNav({ role = "student" }: { role?: WorkspaceRole }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const navLinks = getWorkspaceLinks(pathname);
+  const navLinks = getWorkspaceLinks(role);
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (open) {
@@ -96,7 +98,7 @@ export function MobileNav() {
                             : "text-slate-400 hover:bg-accent-soft hover:text-accent"
                         }`}
                       >
-                        {link.label}
+                        {t(link.labelKey)}
                         {isActive && (
                           <span className="ml-auto h-1.5 w-1.5 rounded-full bg-accent" />
                         )}

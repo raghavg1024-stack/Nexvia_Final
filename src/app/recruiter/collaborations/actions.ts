@@ -63,6 +63,7 @@ export async function createCollaborationAction(
     status,
     participants,
     outcomes,
+    moderation_status: "pending",
   });
 
   if (error) return { error: error.message };
@@ -110,6 +111,10 @@ export async function updateCollaborationAction(
     status,
     participants,
     outcomes,
+    moderation_status: "pending",
+    moderated_by: null,
+    moderated_at: null,
+    moderation_notes: null,
   }).eq("id", id);
 
   if (error) return { error: error.message };
