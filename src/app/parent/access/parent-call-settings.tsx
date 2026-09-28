@@ -29,7 +29,7 @@ export function ParentCallSettings({
     <div className="mt-5 rounded-xl border border-line bg-card p-4">
       <p className="text-xs font-bold uppercase tracking-[.15em] text-cyan-300">AI progress call</p>
       <p className="mt-2 text-xs leading-5 text-slate-400">
-        One supportive call is placed when {studentName}&apos;s active task becomes overdue. Calls require permission from both of you.
+        Nexvia&apos;s AI assistant calls when {studentName}&apos;s active task becomes overdue, listens to the parent, and answers supportive questions. Calls require permission from both of you.
       </p>
       <form action={action}>
         <input type="hidden" name="linkId" value={linkId} />
@@ -57,7 +57,7 @@ export function ParentCallSettings({
       <form action={callAction} className="mt-4 border-t border-line pt-4">
         <input type="hidden" name="linkId" value={linkId} />
         <p className="text-xs leading-5 text-slate-400">
-          Save the number first, then place one real test call using the current overdue task. Carrier charges may apply.
+          Save the number first, then place one real two-way AI test call using the current overdue task. Carrier and AI voice charges may apply.
         </p>
         <button
           disabled={callPending || !studentConsent || !enabled || !phone}

@@ -22,10 +22,17 @@ export async function placeTwilioCall(phone: string, message: string) {
   const from = process.env.TWILIO_PHONE_NUMBER;
   if (!accountSid || !authToken || !from) throw new Error("Twilio is not configured");
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  if (!siteUrl) throw new Error("The public site URL is not configured");
+  const relayUrl = new URL("/api/voice/conversation", siteUrl);
+  relayUrl.protocol = relayUrl.protocol === "http:" ? "ws:" : "wss:";
+  const greeting = "Hello. This is Nexvia's AI parent support assistant. I am calling with a supportive learning update. You can ask me questions, and I will do my best to help.";
+  const callContext = message.slice(0, 700);
+
   const body = new URLSearchParams({
     To: phone,
     From: from,
-    Twiml: `<Response><Say language="en-IN">${escapeXml(message)}</Say></Response>`,
+    Twiml: `<Response><Connect><ConversationRelay url="${escapeXml(relayUrl.toString())}" welcomeGreeting="${escapeXml(greeting)}" language="en-IN"><Parameter name="context" value="${escapeXml(callContext)}" /></ConversationRelay></Connect></Response>`,
   });
   const response = await fetch(
     `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Calls.json`,
