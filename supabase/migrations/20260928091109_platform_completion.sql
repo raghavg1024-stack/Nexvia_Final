@@ -56,6 +56,9 @@ create table if not exists public.portfolio_items (
   updated_at timestamptz not null default now()
 );
 
+alter table public.portfolio_items
+  add column if not exists location text;
+
 alter table public.certificates
   add column if not exists verification_status text not null default 'self_reported'
     check (verification_status in ('self_reported', 'pending_verification', 'verified')),
@@ -99,6 +102,13 @@ create table if not exists public.faculty_opportunities (
   updated_at timestamptz not null default now()
 );
 
+alter table public.faculty_opportunities
+  add column if not exists moderation_status text not null default 'pending'
+    check (moderation_status in ('pending', 'approved', 'rejected', 'suspended')),
+  add column if not exists moderated_by uuid references auth.users(id) on delete set null,
+  add column if not exists moderated_at timestamptz,
+  add column if not exists moderation_notes text;
+
 create table if not exists public.faculty_applications (
   id uuid primary key default gen_random_uuid(),
   opportunity_id uuid not null references public.faculty_opportunities(id) on delete cascade,
@@ -130,6 +140,13 @@ create table if not exists public.industry_collaborations (
   updated_at timestamptz not null default now()
 );
 
+alter table public.industry_collaborations
+  add column if not exists moderation_status text not null default 'pending'
+    check (moderation_status in ('pending', 'approved', 'rejected', 'suspended')),
+  add column if not exists moderated_by uuid references auth.users(id) on delete set null,
+  add column if not exists moderated_at timestamptz,
+  add column if not exists moderation_notes text;
+
 alter table public.jobs
   add column if not exists application_deadline date,
   add column if not exists moderation_status text not null default 'pending'
@@ -150,6 +167,15 @@ create table if not exists public.notifications (
   created_at timestamptz not null default now(),
   unique (user_id, dedupe_key)
 );
+
+alter table public.notifications
+  add column if not exists dedupe_key text;
+alter table public.notifications drop constraint if exists notifications_type_check;
+alter table public.notifications
+  add constraint notifications_type_check
+  check (type in ('application_status', 'streak_reminder', 'weekly_recap', 'system', 'match', 'deadline', 'verification', 'training'));
+create unique index if not exists notifications_user_dedupe_key_idx
+  on public.notifications (user_id, dedupe_key);
 
 create table if not exists public.notification_preferences (
   user_id uuid primary key references auth.users(id) on delete cascade,
