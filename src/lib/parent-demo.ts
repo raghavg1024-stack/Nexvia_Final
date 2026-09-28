@@ -14,7 +14,7 @@ export function createDemoParentDashboard(): ParentDashboardData {
       xp: 1_280,
       current_streak_days: 9,
       longest_streak_days: 14,
-      last_active_day: daysAgo(1),
+      last_active_day: daysAgo(5),
       study_hours_per_week: 8,
       learning_style: "visual",
     },
@@ -47,7 +47,7 @@ export function createDemoParentDashboard(): ParentDashboardData {
       career_title: "Data Analyst",
       status: "active",
       created_at: daysAgo(17),
-      last_activity_at: daysAgo(1),
+      last_activity_at: daysAgo(5),
       milestones: [
         {
           id: "demo-milestone-1",
@@ -111,6 +111,16 @@ export function createDemoParentDashboard(): ParentDashboardData {
     ],
     encouragements: [
       { id: "demo-note-1", message: "Proud of the steady work you are putting in this week.", created_at: daysAgo(2) },
+    ],
+    overdue_tasks: [
+      {
+        id: "demo-overdue-course",
+        title: "Dashboard project checkpoint",
+        milestone_title: "SQL and dashboards",
+        career_title: "Data Analyst",
+        due_at: daysAgo(3),
+        days_overdue: 3,
+      },
     ],
   };
 }

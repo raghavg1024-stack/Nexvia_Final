@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { loadParentDashboard, type ParentDashboardData } from "@/lib/parent";
 import { createDemoParentDashboard } from "@/lib/parent-demo";
 import { ParentEncouragementForm } from "./parent-encouragement-form";
+import { DemoParentCall } from "./demo-parent-call";
 
 type PageProps = {
   searchParams: Promise<{ student?: string; demo?: string }>;
@@ -89,6 +90,8 @@ export default async function ParentDashboardPage({ searchParams }: PageProps) {
   const strengths = data.analysis?.strengths ?? data.recommendation?.existing_strengths ?? [];
   const growthAreas =
     data.analysis?.growth_areas ?? data.recommendation?.growth_opportunities ?? [];
+  const overdueTasks = data.overdue_tasks ?? [];
+  const firstOverdueTask = overdueTasks[0];
   const reportRows = [
     { label: "Technical skills", score: data.readiness?.technical_skills ?? 0, note: "Tools, concepts, and practical practice" },
     { label: "Communication", score: data.readiness?.communication ?? 0, note: "Explaining ideas and interview responses" },
@@ -155,12 +158,12 @@ export default async function ParentDashboardPage({ searchParams }: PageProps) {
         />
       </section>
 
-      {(data.overdue_tasks ?? []).length > 0 ? (
+      {overdueTasks.length > 0 ? (
         <section className="mt-6 rounded-2xl border border-amber-400/30 bg-amber-400/[0.07] p-6">
           <p className="text-xs font-bold uppercase tracking-[.16em] text-amber-300">Support may be helpful</p>
           <h2 className="mt-2 font-display text-xl uppercase text-white">Overdue roadmap tasks</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {data.overdue_tasks?.map((task) => (
+            {overdueTasks.map((task) => (
               <div key={task.id} className="rounded-xl border border-amber-300/15 bg-background/70 p-4">
                 <p className="font-semibold text-white">{task.title}</p>
                 <p className="mt-1 text-xs text-slate-400">{task.milestone_title} · due {formatDate(task.due_at)}</p>
@@ -168,6 +171,13 @@ export default async function ParentDashboardPage({ searchParams }: PageProps) {
               </div>
             ))}
           </div>
+          {isDemo && firstOverdueTask ? (
+            <DemoParentCall
+              studentName={data.student.name.split(" ")[0] || "your learner"}
+              taskTitle={firstOverdueTask.title}
+              daysOverdue={firstOverdueTask.days_overdue}
+            />
+          ) : null}
         </section>
       ) : null}
 

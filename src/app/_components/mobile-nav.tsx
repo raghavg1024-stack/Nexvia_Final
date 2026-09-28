@@ -82,7 +82,8 @@ export function MobileNav({ role = "student" }: { role?: WorkspaceRole }) {
               </div>
               <nav className="px-4 pb-8">
                 {navLinks.map((link, index) => {
-                  const isActive = pathname === link.href;
+                  const linkPath = link.href.split("?")[0];
+                  const isActive = pathname === linkPath || (linkPath !== "/dashboard" && pathname.startsWith(`${linkPath}/`));
                   return (
                     <motion.div
                       key={link.href}
@@ -92,6 +93,7 @@ export function MobileNav({ role = "student" }: { role?: WorkspaceRole }) {
                     >
                       <Link
                         href={link.href}
+                        onClick={() => setOpen(false)}
                         className={`group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
                           isActive
                             ? "bg-accent-soft text-accent"

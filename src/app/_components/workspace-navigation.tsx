@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import {
   Award, BarChart3, Bell, BookOpenCheck, Bot, BriefcaseBusiness, Building2,
   ChartNoAxesCombined, CircleUserRound, ClipboardCheck, FileSearch, GraduationCap,
-  HandHeart, LayoutDashboard, Map, MessageCircleQuestion, SearchCheck, ShieldCheck,
-  Sparkles, UsersRound,
+  HandHeart, Handshake, LayoutDashboard, Map, MessageCircleQuestion, PhoneCall,
+  SearchCheck, ShieldCheck, Sparkles, SquarePlus, UsersRound,
 } from "lucide-react";
 import { useLanguage } from "./language-provider";
 import type { TranslationKey } from "@/lib/i18n";
@@ -19,7 +19,7 @@ export type WorkspaceLink = {
   group: "career" | "ai" | "network" | "management" | "account";
 };
 
-const learnerLinks: WorkspaceLink[] = [
+const studentLinks: WorkspaceLink[] = [
   { href: "/dashboard", labelKey: "dashboard", icon: LayoutDashboard, group: "career" },
   { href: "/roadmap", labelKey: "roadmap", icon: Map, group: "career" },
   { href: "/readiness", labelKey: "readiness", icon: ChartNoAxesCombined, group: "career" },
@@ -39,36 +39,47 @@ const learnerLinks: WorkspaceLink[] = [
 ];
 
 export function getWorkspaceLinks(role: WorkspaceRole = "student"): WorkspaceLink[] {
-  const management: WorkspaceLink[] = [];
-  if (role === "academia") management.push(
+  if (role === "academia") return [
     { href: "/academia", labelKey: "academia", icon: Building2, group: "management" },
+    { href: "/academia/opportunities", labelKey: "facultyOpportunities", icon: GraduationCap, group: "management" },
+    { href: "/academia/collaborations", labelKey: "collaborations", icon: Handshake, group: "management" },
     { href: "/verification", labelKey: "verification", icon: ClipboardCheck, group: "management" },
     { href: "/impact", labelKey: "impact", icon: BarChart3, group: "management" },
-  );
-  if (role === "recruiter") management.push(
-    { href: "/recruiter", labelKey: "industry", icon: Building2, group: "management" },
-    { href: "/recruiter/upskilling", labelKey: "upskilling", icon: BookOpenCheck, group: "management" },
-    { href: "/verification", labelKey: "verification", icon: ClipboardCheck, group: "management" },
-    { href: "/impact", labelKey: "impact", icon: BarChart3, group: "management" },
-  );
-  if (role === "admin") management.push(
-    { href: "/admin/moderation", labelKey: "moderation", icon: ShieldCheck, group: "management" },
-    { href: "/verification", labelKey: "verification", icon: ClipboardCheck, group: "management" },
-    { href: "/impact", labelKey: "impact", icon: BarChart3, group: "management" },
-  );
-  if (role === "parent") return [
-    { href: "/parent", labelKey: "parent", icon: HandHeart, group: "management" },
     { href: "/notifications", labelKey: "notifications", icon: Bell, group: "account" },
     { href: "/profile", labelKey: "profile", icon: CircleUserRound, group: "account" },
   ];
-  const seen = new Set(management.map((link) => link.href));
-  return [...management, ...learnerLinks.filter((link) => !seen.has(link.href))];
+  if (role === "recruiter") return [
+    { href: "/recruiter", labelKey: "industry", icon: Building2, group: "management" },
+    { href: "/recruiter/post-job", labelKey: "postOpportunity", icon: SquarePlus, group: "management" },
+    { href: "/recruiter/faculty-opportunities", labelKey: "facultyOpportunities", icon: GraduationCap, group: "management" },
+    { href: "/recruiter/collaborations", labelKey: "collaborations", icon: Handshake, group: "management" },
+    { href: "/recruiter/feedback", labelKey: "employerFeedback", icon: MessageCircleQuestion, group: "management" },
+    { href: "/recruiter/upskilling", labelKey: "upskilling", icon: BookOpenCheck, group: "management" },
+    { href: "/verification", labelKey: "verification", icon: ClipboardCheck, group: "management" },
+    { href: "/impact", labelKey: "impact", icon: BarChart3, group: "management" },
+    { href: "/notifications", labelKey: "notifications", icon: Bell, group: "account" },
+    { href: "/profile", labelKey: "profile", icon: CircleUserRound, group: "account" },
+  ];
+  if (role === "admin") return [
+    { href: "/admin/moderation", labelKey: "moderation", icon: ShieldCheck, group: "management" },
+    { href: "/verification", labelKey: "verification", icon: ClipboardCheck, group: "management" },
+    { href: "/impact", labelKey: "impact", icon: BarChart3, group: "management" },
+    { href: "/notifications", labelKey: "notifications", icon: Bell, group: "account" },
+    { href: "/profile", labelKey: "profile", icon: CircleUserRound, group: "account" },
+  ];
+  if (role === "parent") return [
+    { href: "/parent/access", labelKey: "parent", icon: HandHeart, group: "management" },
+    { href: "/parent/dashboard?demo=1", labelKey: "parentCallDemo", icon: PhoneCall, group: "management" },
+    { href: "/notifications", labelKey: "notifications", icon: Bell, group: "account" },
+    { href: "/profile", labelKey: "profile", icon: CircleUserRound, group: "account" },
+  ];
+  return studentLinks;
 }
 
 const groupLabels = {
-  management: "Workspace management", career: "Career & learning", ai: "AI tools & coaching",
-  network: "Opportunities & network", account: "Account",
-};
+  management: "workspaceManagement", career: "careerGroup", ai: "aiGroup",
+  network: "networkGroup", account: "accountGroup",
+} satisfies Record<WorkspaceLink["group"], TranslationKey>;
 
 export function WorkspaceNavigation({ role = "student" }: { role?: WorkspaceRole }) {
   const pathname = usePathname();
@@ -78,13 +89,14 @@ export function WorkspaceNavigation({ role = "student" }: { role?: WorkspaceRole
 
   return groups.map((group) => (
     <div key={group} className="pb-4">
-      <p className="px-3 pb-2 pt-1 text-[10px] font-bold uppercase tracking-[.14em] text-sidebar-muted">{groupLabels[group]}</p>
+      <p className="px-3 pb-2 pt-1 text-[10px] font-bold uppercase tracking-[.14em] text-sidebar-muted">{t(groupLabels[group])}</p>
       <div className="space-y-1">
         {links.filter((link) => link.group === group).map((link) => {
-          const active = pathname === link.href || (link.href !== "/dashboard" && pathname.startsWith(`${link.href}/`));
+          const linkPath = link.href.split("?")[0];
+          const active = pathname === linkPath || (linkPath !== "/dashboard" && pathname.startsWith(`${linkPath}/`));
           const Icon = link.icon;
           return (
-            <Link key={link.href} href={link.href} prefetch={false} aria-current={active ? "page" : undefined}
+            <Link key={link.href} href={link.href} aria-current={active ? "page" : undefined}
               className={`group flex items-center rounded-lg border px-3 py-2.5 text-sm font-medium transition-all ${active ? "border-blue-400/20 bg-blue-500/15 text-blue-300" : "border-transparent text-sidebar-text hover:border-blue-400/10 hover:bg-blue-400/10 hover:text-sidebar-strong"}`}>
               <Icon className="mr-3 h-[18px] w-[18px] shrink-0 text-sidebar-muted transition-colors group-hover:text-blue-400" aria-hidden="true" />
               {t(link.labelKey)}
