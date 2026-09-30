@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Fragment } from "react";
 import { Check, Circle, LockKeyhole, Sparkles } from "lucide-react";
 import { getRoadmap, ensureMilestones } from "@/lib/roadmap";
 import { CAREERS } from "@/lib/data";
 import type { Milestone, MilestoneStatus } from "@/lib/types";
 import { Reveal } from "../_components/motion";
-import { CourseToggle, MilestoneAction } from "./status-toggle";
+import { CourseTest, CourseToggle, MilestoneAction } from "./status-toggle";
 import { CareerSwitcher } from "./career-switcher";
 
 export const dynamic = "force-dynamic";
@@ -134,32 +135,36 @@ function MilestoneCard({
               ) : null}
 
               <ul className="mt-5 space-y-2.5">
-                {milestone.courses.map((course, courseIndex) => (
-                  <li key={course.id} className="course-quest flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/[0.07] bg-black/20 px-4 py-3 transition-colors hover:border-cyan-300/20 hover:bg-cyan-300/[0.03]">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-medium text-slate-100">{course.title}</p>
-                        <span className="rounded-full border border-white/[0.06] bg-white/[0.04] px-2 py-0.5 text-xs text-slate-500">
-                          {course.duration_weeks} {course.duration_weeks === 1 ? "week" : "weeks"}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-sm leading-5 text-slate-400">{course.description}</p>
-                    </div>
-                    <div className="shrink-0">
-                      <CourseToggle
-                        course={course}
-                        courseAvailable={
-                          milestoneAvailable && courseIndex === nextCourseIndex
-                        }
-                        lockedMessage={
-                          milestoneAvailable
-                            ? "Complete the activity above first"
-                            : "Locked"
-                        }
-                      />
-                    </div>
-                  </li>
-                ))}
+                {milestone.courses.map((course, courseIndex) => {
+                  const courseAvailable = milestoneAvailable && courseIndex === nextCourseIndex;
+                  return (
+                    <Fragment key={course.id}>
+                      <li className="course-quest flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/[0.07] bg-black/20 px-4 py-3 transition-colors hover:border-cyan-300/20 hover:bg-cyan-300/[0.03]">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-medium text-slate-100">{course.title}</p>
+                            <span className="rounded-full border border-white/[0.06] bg-white/[0.04] px-2 py-0.5 text-xs text-slate-500">
+                              {course.duration_weeks} {course.duration_weeks === 1 ? "week" : "weeks"}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-sm leading-5 text-slate-400">{course.description}</p>
+                        </div>
+                        <div className="shrink-0">
+                          <CourseToggle
+                            course={course}
+                            courseAvailable={courseAvailable}
+                            lockedMessage={
+                              milestoneAvailable
+                                ? "Complete the activity above first"
+                                : "Locked"
+                            }
+                          />
+                        </div>
+                      </li>
+                      <CourseTest course={course} courseAvailable={courseAvailable} />
+                    </Fragment>
+                  );
+                })}
               </ul>
 
               <div className="mt-5 border-t border-white/[0.08] pt-4">
