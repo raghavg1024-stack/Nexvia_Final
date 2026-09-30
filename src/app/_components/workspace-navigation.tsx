@@ -6,7 +6,7 @@ import {
   Award, BarChart3, Bell, BookOpenCheck, Bot, BriefcaseBusiness, Building2,
   ChartNoAxesCombined, CircleUserRound, ClipboardCheck, FileSearch, GraduationCap,
   HandHeart, Handshake, LayoutDashboard, Map, MessageCircleQuestion, PhoneCall,
-  SearchCheck, ShieldCheck, Sparkles, SquarePlus, UsersRound,
+  SearchCheck, ShieldCheck, Sparkles, SquarePen, SquarePlus, UsersRound,
 } from "lucide-react";
 import { useLanguage } from "./language-provider";
 import type { TranslationKey } from "@/lib/i18n";
@@ -28,6 +28,7 @@ const studentLinks: WorkspaceLink[] = [
   { href: "/mentor", labelKey: "mentor", icon: Bot, group: "ai" },
   { href: "/mock-interview", labelKey: "interview", icon: MessageCircleQuestion, group: "ai" },
   { href: "/resume-analysis", labelKey: "resume", icon: FileSearch, group: "ai" },
+  { href: "/resume-builder", labelKey: "resumeBuilder", icon: SquarePen, group: "ai" },
   { href: "/jobs", labelKey: "jobs", icon: BriefcaseBusiness, group: "network" },
   { href: "/scholarships", labelKey: "scholarships", icon: GraduationCap, group: "network" },
   { href: "/community", labelKey: "community", icon: UsersRound, group: "network" },
@@ -43,6 +44,7 @@ export function getWorkspaceLinks(role: WorkspaceRole = "student"): WorkspaceLin
     { href: "/academia", labelKey: "academia", icon: Building2, group: "management" },
     { href: "/academia/opportunities", labelKey: "facultyOpportunities", icon: GraduationCap, group: "management" },
     { href: "/academia/collaborations", labelKey: "collaborations", icon: Handshake, group: "management" },
+    { href: "/academia/resume-builder", labelKey: "resumeBuilder", icon: SquarePen, group: "management" },
     { href: "/verification", labelKey: "verification", icon: ClipboardCheck, group: "management" },
     { href: "/impact", labelKey: "impact", icon: BarChart3, group: "management" },
     { href: "/notifications", labelKey: "notifications", icon: Bell, group: "account" },
