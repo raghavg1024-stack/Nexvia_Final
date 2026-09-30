@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { CAREERS, XP_RULES } from "@/lib/data";
 import { awardCertificate } from "@/lib/certificates";
 import { grantReward } from "@/lib/rewards";
+import { decodeRoadmapTestToken } from "@/lib/roadmap-test";
 import type {
   Course,
   Milestone,
@@ -24,6 +25,20 @@ export type CareerSwitchState = {
   message?: string;
   careerTitle?: string;
   roadmapId?: string;
+};
+
+export type RoadmapTestResult = {
+  ok: boolean;
+  passed: boolean;
+  score: number;
+  total: number;
+  message: string;
+};
+
+export type RoadmapTestContext = {
+  course: Course;
+  careerTitle: string;
+  userId: string;
 };
 
 type Supabase = Awaited<ReturnType<typeof createClient>>;
@@ -1177,6 +1192,65 @@ export async function getRoadmap(): Promise<Roadmap | null> {
   if (!roadmap) return null;
 
   return loadRoadmap(supabase, roadmap.id);
+}
+
+export async function getRoadmapTestContext(courseId: string): Promise<RoadmapTestContext | null> {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(courseId)) return null;
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: course } = await supabase.from("courses").select("*").eq("id", courseId).maybeSingle();
+  if (!course) return null;
+  const { data: milestone } = await supabase.from("milestones").select("roadmap_id").eq("id", course.milestone_id).maybeSingle();
+  if (!milestone) return null;
+  const { data: roadmap } = await supabase
+    .from("roadmaps")
+    .select("career_title")
+    .eq("id", milestone.roadmap_id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!roadmap) return null;
+
+  return { course: course as Course, careerTitle: roadmap.career_title, userId: user.id };
+}
+
+export async function submitRoadmapTest(
+  courseId: string,
+  token: string,
+  answers: number[],
+): Promise<RoadmapTestResult> {
+  const context = await getRoadmapTestContext(courseId);
+  if (!context) return { ok: false, passed: false, score: 0, total: 10, message: "This test is not available." };
+  if (context.course.status === "completed") return { ok: true, passed: true, score: 10, total: 10, message: "This task test is already complete." };
+  if (context.course.status !== "in_progress") return { ok: false, passed: false, score: 0, total: 10, message: "Start the roadmap task before taking its test." };
+
+  const payload = decodeRoadmapTestToken(token);
+  const total = payload?.correctAnswers.length ?? 10;
+  if (!payload || payload.courseId !== courseId || payload.userId !== context.userId || payload.expiresAt < Date.now()) {
+    return { ok: false, passed: false, score: 0, total, message: "This test paper expired or could not be verified. Open a new test from the roadmap." };
+  }
+  if (answers.length !== total || answers.some((answer) => !Number.isInteger(answer) || answer < 0 || answer > 3)) {
+    return { ok: false, passed: false, score: 0, total, message: "Answer every question before submitting." };
+  }
+
+  const score = payload.correctAnswers.reduce((sum, correctAnswer, index) => sum + (answers[index] === correctAnswer ? 1 : 0), 0);
+  const passingScore = Math.ceil(total * 0.8);
+  if (score < passingScore) {
+    return { ok: true, passed: false, score, total, message: `Review the completed task content and try again. You need ${passingScore} correct answers to pass.` };
+  }
+
+  const formData = new FormData();
+  formData.set("courseId", courseId);
+  formData.set("status", "completed");
+  const completion = await updateCourseStatus({ ok: true }, formData);
+  if (!completion.ok) {
+    return { ok: false, passed: false, score, total, message: completion.message ?? "The passing result could not be saved." };
+  }
+
+  revalidatePath("/roadmap");
+  return { ok: true, passed: true, score, total, message: "Test passed. The next roadmap task is now available." };
 }
 
 export async function createCareerRoadmap(
