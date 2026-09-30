@@ -4,8 +4,10 @@ import { useActionState } from "react";
 import { AlertTriangle, FileSearch, ShieldCheck, Sparkles, Target, Upload } from "lucide-react";
 import {
   analyzeResume,
-  resumeAnalysisInitialState,
+  type ResumeAnalysisState,
 } from "@/lib/resume-analysis";
+
+const resumeAnalysisInitialState: ResumeAnalysisState = { ok: false };
 
 function ResultList({ title, items }: { title: string; items: string[] }) {
   return (

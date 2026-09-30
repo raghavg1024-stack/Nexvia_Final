@@ -41,8 +41,6 @@ export interface ResumeAnalysisState {
   result?: ResumeAnalysis;
 }
 
-export const resumeAnalysisInitialState: ResumeAnalysisState = { ok: false };
-
 function resolveApiKey() {
   return (
     process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim() ||
