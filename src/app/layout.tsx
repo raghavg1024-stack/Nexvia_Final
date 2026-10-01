@@ -10,7 +10,6 @@ import { Breadcrumbs } from "./_components/breadcrumbs";
 import { CookieConsent } from "./_components/cookie-consent";
 import { SiteAnalytics } from "./_components/site-analytics";
 import { ThemeToggle } from "./_components/theme-toggle";
-import { WorkspaceNavigation } from "./_components/workspace-navigation";
 import { LanguageProvider, LanguageSwitcher } from "./_components/language-provider";
 import type { AppLocale } from "@/lib/i18n";
 import type { WorkspaceRole } from "./_components/workspace-navigation";
@@ -128,30 +127,16 @@ export default async function RootLayout({
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 shadow-[0_0_8px_#6ee7b7]" /> Quest mode
                 </span>
                 <LogoutButton />
-                <MobileNav role={role} />
+                <MobileNav role={role} description={workspaceDescription} />
               </div>
             </nav>
           </header>
         )}
-        {user && (
-          <aside className="industry-sidebar fixed inset-y-[4.5rem] left-0 z-30 hidden w-72 border-r border-blue-300/15 shadow-[16px_0_45px_rgba(15,23,42,.16)] xl:flex xl:flex-col" aria-label="Workspace navigation">
-            <div className="border-b border-white/[.05] px-5 py-5">
-              <p className="text-[10px] font-bold uppercase tracking-[.2em] text-violet-300">Workspace</p>
-              <p className="mt-1 text-xs leading-5 text-slate-500">{workspaceDescription}</p>
-            </div>
-            <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4" aria-label="Workspace links">
-              <WorkspaceNavigation role={role} />
-            </nav>
-            <div className="border-t border-white/[.05] p-4">
-              <p className="px-1 text-[11px] leading-5 text-slate-500">Private workspace · your data stays protected</p>
-            </div>
-          </aside>
-        )}
-        <main className={`flex min-w-0 flex-1 flex-col${user ? " xl:pl-72" : ""}`}>
+        <main className="flex min-w-0 flex-1 flex-col">
           <Breadcrumbs />
           {children}
         </main>
-        <footer className={`industry-footer border-t border-slate-800 text-white${user ? " xl:pl-72" : ""}`}>
+        <footer className="industry-footer border-t border-slate-800 text-white">
           <div className="mx-auto flex max-w-6xl flex-col items-center gap-5 px-4 py-10 sm:px-6">
             <div className="flex w-full flex-col items-center justify-between gap-4 sm:flex-row">
             <div className="flex items-center gap-2.5">
