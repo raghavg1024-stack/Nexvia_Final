@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Award, BarChart3, Bell, BookOpenCheck, Bot, BriefcaseBusiness, Building2,
-  ChartNoAxesCombined, CircleUserRound, ClipboardCheck, Compass, FileSearch, GraduationCap,
+  ChartNoAxesCombined, CircleUserRound, ClipboardCheck, FileSearch, GraduationCap,
   HandHeart, Handshake, LayoutDashboard, Map, MessageCircleQuestion, PhoneCall,
   SearchCheck, ShieldCheck, Sparkles, SquarePen, SquarePlus, UsersRound,
 } from "lucide-react";
@@ -37,15 +37,6 @@ const studentLinks: WorkspaceLink[] = [
   { href: "/notifications", labelKey: "notifications", icon: Bell, group: "account" },
   { href: "/profile", labelKey: "profile", icon: CircleUserRound, group: "account" },
   { href: "/parent/access", labelKey: "parent", icon: HandHeart, group: "account" },
-];
-
-const primaryStudentLinks = [
-  { href: "/dashboard", icon: LayoutDashboard, labels: ["Home", "होम", "होम"], routes: ["/dashboard"] },
-  { href: "/recommendations", icon: Compass, labels: ["Career plan", "करियर योजना", "करिअर योजना"], routes: ["/recommendations", "/assessment", "/careers", "/readiness"] },
-  { href: "/roadmap", icon: BookOpenCheck, labels: ["Learn", "सीखें", "शिका"], routes: ["/roadmap", "/mentor"] },
-  { href: "/mock-interview", icon: MessageCircleQuestion, labels: ["Practice", "अभ्यास", "सराव"], routes: ["/mock-interview", "/resume-analysis", "/resume-builder"] },
-  { href: "/jobs", icon: BriefcaseBusiness, labels: ["Opportunities", "अवसर", "संधी"], routes: ["/jobs", "/scholarships", "/applications"] },
-  { href: "/profile", icon: CircleUserRound, labels: ["Profile", "प्रोफ़ाइल", "प्रोफाइल"], routes: ["/profile", "/portfolio"] },
 ];
 
 export function getWorkspaceLinks(role: WorkspaceRole = "student"): WorkspaceLink[] {
@@ -94,18 +85,9 @@ const groupLabels = {
 
 export function WorkspaceNavigation({ role = "student" }: { role?: WorkspaceRole }) {
   const pathname = usePathname();
-  const { t, locale } = useLanguage();
+  const { t } = useLanguage();
   const links = getWorkspaceLinks(role);
   const groups = [...new Set(links.map((link) => link.group))];
-
-  if (role === "student") {
-    const localeIndex = locale === "hi" ? 1 : locale === "mr" ? 2 : 0;
-    const more = studentLinks.filter((link) => !primaryStudentLinks.some((primary) => primary.href === link.href));
-    return <div className="space-y-1">{primaryStudentLinks.map(({ href, icon: Icon, labels, routes }) => {
-      const active = routes.some((route) => pathname === route || pathname.startsWith(`${route}/`));
-      return <Link key={href} href={href} aria-current={active ? "page" : undefined} className={`flex min-h-11 items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${active ? "bg-accent-soft text-accent" : "text-sidebar-text hover:bg-accent-soft"}`}><Icon className="h-[18px] w-[18px]" aria-hidden />{labels[localeIndex]}</Link>;
-    })}<details className="pt-3" open={more.some((link) => pathname === link.href)}><summary className="min-h-11 cursor-pointer rounded-xl px-3 py-3 text-sm font-medium text-sidebar-text">{locale === "hi" ? "और" : locale === "mr" ? "अधिक" : "More"}</summary><div className="mt-1 space-y-1">{more.map((link) => { const Icon = link.icon; const active = pathname === link.href; return <Link key={link.href} href={link.href} aria-current={active ? "page" : undefined} className={`flex min-h-11 items-center gap-3 rounded-xl px-3 py-3 text-sm ${active ? "bg-accent-soft text-accent" : "text-sidebar-text hover:bg-accent-soft"}`}><Icon className="h-4 w-4" aria-hidden />{t(link.labelKey)}</Link>; })}</div></details></div>;
-  }
 
   return groups.map((group) => (
     <div key={group} className="pb-4">

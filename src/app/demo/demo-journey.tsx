@@ -1,32 +1,33 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
-import Link from "next/link";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useReducedMotion } from "motion/react";
 
-const steps = [
-  { label: "Profile", title: "Start with who you are", understands: "Aarav is a second-year student who enjoys problem solving and can study for 10 hours each week.", recommends: "Explore practical software roles and record existing programming skills.", why: "His interests and available time favour a project-based learning path.", action: "Add interests, skills, education, and a career goal.", output: "A starting point that reflects you", detail: "Interests: programming and teamwork · Learning preference: hands-on", button: "Build your profile" },
-  { label: "Assessment", title: "Understand your strengths and gaps", understands: "Aarav enjoys building interfaces and logical challenges, with room to improve his JavaScript foundations.", recommends: "Compare careers that combine programming, design, and practical problem solving.", why: "His answers suggest a preference for visible results and hands-on work.", action: "Complete the career assessment and review the strengths it identifies.", output: "A clearer picture of your strengths", detail: "Sample strengths: problem solving, teamwork, and programming", button: "Start your assessment journey" },
-  { label: "Career match", title: "Choose a direction with clear reasons", understands: "Aarav’s interests, skills, and work preferences align with frontend development.", recommends: "Consider frontend developer as a target, alongside related software roles.", why: "Programming interests and interface projects support this direction; JavaScript is the next skill gap.", action: "Compare the explained matches and choose a target career.", output: "Frontend developer · 89% sample relevance", detail: "Illustrative relevance, not a prediction of success or a guarantee of employment.", button: "Find your career direction" },
-  { label: "Roadmap", title: "Turn your direction into a learning plan", understands: "Aarav needs stronger JavaScript, React project evidence, and interview preparation.", recommends: "An 11-week plan: foundations (2 weeks), a React project (4), APIs and testing (3), then applications (2).", why: "Foundations come before projects, and evidence comes before applications.", action: "Start the first foundation activity and complete milestones in sequence.", output: "An 11-week sample learning plan", detail: "JavaScript and Git → React project → APIs and testing → Interview preparation", button: "Build your learning plan" },
-  { label: "Practice", title: "Prepare through useful feedback", understands: "Aarav can build a project but needs practice explaining decisions and solving interview questions.", recommends: "Practise role-specific interviews and improve the project descriptions on his resume.", why: "Clear explanations help him show the skills behind the work.", action: "Complete a mock interview and improve one answer using the feedback.", output: "One practice session, one improvement", detail: "Sample next task: explain how your React project handles user input.", button: "Start your practice journey" },
-  { label: "Opportunity", title: "Connect your preparation to real roles", understands: "Aarav has a target career and project evidence to compare with opportunity requirements.", recommends: "Review suitable frontend internships and check eligibility and remaining skill gaps.", why: "Opportunities are more useful when requirements and reasons for relevance are visible.", action: "Review an opportunity, tailor the application, and follow the employer’s application process.", output: "A more informed application decision", detail: "Check required skills, eligibility, evidence, and the employer’s instructions before applying.", button: "Begin your opportunity journey" },
-] as const;
+const steps = ["Profile", "Skill gap", "Career match", "Roadmap", "Practice", "Opportunity"] as const;
 
 export function DemoJourneyAnimation() {
-  const [selected, setSelected] = useState(0);
-  const id = useId();
-  const tabs = useRef<(HTMLButtonElement | null)[]>([]);
-  const step = steps[selected];
-  function moveTo(index: number) {
-    const next = (index + steps.length) % steps.length;
-    setSelected(next);
-    tabs.current[next]?.focus();
-  }
-  return <section className="premium-demo mt-8 overflow-hidden rounded-2xl" aria-label="Interactive student journey">
-    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-700 px-6 py-5"><span className="font-semibold">Aarav’s career journey</span><span className="text-xs text-slate-300">Sample data · no account needed</span></div>
-    <div role="tablist" aria-label="Career journey steps" className="grid grid-cols-2 gap-2 p-4 sm:grid-cols-3 lg:grid-cols-6">{steps.map((item, index) => <button key={item.label} ref={(node) => { tabs.current[index] = node; }} type="button" role="tab" id={`${id}-tab-${index}`} aria-controls={`${id}-panel`} aria-selected={selected === index} tabIndex={selected === index ? 0 : -1} onClick={() => setSelected(index)} onKeyDown={(event) => { if (["ArrowRight", "ArrowLeft", "Home", "End"].includes(event.key)) { event.preventDefault(); moveTo(event.key === "Home" ? 0 : event.key === "End" ? steps.length - 1 : selected + (event.key === "ArrowRight" ? 1 : -1)); } }} className={`min-h-12 rounded-xl border px-3 py-3 text-sm font-semibold transition ${selected === index ? "border-blue-500 bg-blue-600 text-white" : "border-slate-700 text-slate-300 hover:border-blue-400 hover:text-white"}`}><span className="mr-2 opacity-70">{index + 1}</span>{item.label}</button>)}</div>
-    <div role="tabpanel" id={`${id}-panel`} aria-labelledby={`${id}-tab-${selected}`} tabIndex={0} className="grid gap-8 px-6 pb-7 pt-4 sm:px-8 lg:grid-cols-[1.2fr_.8fr]"><div><p className="text-xs font-semibold text-blue-200">Step {selected + 1} of 6 · {step.label}</p><h3 className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">{step.title}</h3><dl className="mt-6 space-y-5">{[["What Nexvia understands", step.understands], ["What it recommends", step.recommends], ["Why it recommends it", step.why]].map(([label, value]) => <div key={label}><dt className="text-sm font-semibold text-white">{label}</dt><dd className="mt-2 text-sm leading-7 text-slate-300">{value}</dd></div>)}</dl></div><div className="flex flex-col rounded-xl border border-slate-700 bg-slate-800 p-6"><CheckCircle2 className="h-6 w-6 text-blue-300" /><h4 className="mt-4 text-lg font-semibold">{step.output}</h4><p className="mt-3 text-sm leading-7 text-slate-300">{step.detail}</p><div className="mt-6 border-t border-slate-600 pt-5"><p className="text-sm font-semibold">Your next action</p><p className="mt-2 text-sm leading-7 text-slate-300">{step.action}</p><Link href="/signup/student" className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500">{step.button} <ArrowRight className="h-4 w-4" /></Link></div></div></div>
-    <div className="flex items-center justify-between border-t border-slate-700 px-6 py-4"><button type="button" disabled={selected === 0} onClick={() => moveTo(selected - 1)} className="min-h-11 rounded-lg px-3 text-sm text-slate-300 hover:bg-slate-800 disabled:opacity-40">Previous step</button><button type="button" disabled={selected === steps.length - 1} onClick={() => moveTo(selected + 1)} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-blue-200 hover:bg-slate-800 disabled:opacity-40">Next step <ArrowRight className="h-4 w-4" /></button></div>
-  </section>;
+  const reduceMotion = useReducedMotion();
+  const [score, setScore] = useState(0);
+
+  useEffect(() => {
+    if (reduceMotion) return;
+    const startedAt = performance.now();
+    let frame = 0;
+    function update(now: number) {
+      const progress = Math.min((now - startedAt) / 1000, 1);
+      setScore(Math.round(89 * (1 - Math.pow(1 - progress, 3))));
+      if (progress < 1) frame = requestAnimationFrame(update);
+    }
+    frame = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(frame);
+  }, [reduceMotion]);
+
+  const visibleScore = reduceMotion ? 89 : score;
+  return (
+    <section aria-label="Animated Nexvia career journey" className="mt-6 overflow-hidden rounded-3xl border border-cyan-400/20 bg-[#0b1220] p-5 sm:p-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-cyan-300">How Nexvia moves a learner forward</p><p className="mt-1 text-sm text-slate-400">Each result unlocks the next useful action.</p></div><div className="rounded-xl border border-emerald-400/20 bg-emerald-400/[.06] px-4 py-2 text-sm font-bold text-emerald-300">Career relevance {visibleScore}%</div></div>
+      <div className="relative mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6"><span className="demo-flow-line absolute left-[8%] right-[8%] top-5 hidden h-px bg-gradient-to-r from-cyan-400 via-blue-500 to-emerald-400 lg:block" aria-hidden="true" />{steps.map((step, index) => <div key={step} className="demo-flow-step relative z-10 rounded-xl border border-white/10 bg-[#101827] p-3 text-center" style={{ animationDelay: `${index * 160}ms` }}><span className={`mx-auto flex h-10 w-10 items-center justify-center rounded-full border text-xs font-black ${index === steps.length - 1 ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-300" : "border-cyan-400/30 bg-cyan-400/10 text-cyan-200"}`}>{index + 1}</span><p className="mt-2 text-xs font-semibold text-slate-200">{step}</p></div>)}</div>
+      <p className="mt-5 text-xs text-slate-500">Based on profile signals, skill evidence, interests, career goals and project history.</p>
+    </section>
+  );
 }

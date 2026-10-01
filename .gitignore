@@ -16,7 +16,6 @@
 # next.js
 /.next/
 /.next-verify/
-/.next-design-preview/
 /out/
 
 # production
