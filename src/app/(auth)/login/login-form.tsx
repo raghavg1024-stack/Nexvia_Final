@@ -22,13 +22,12 @@ export function LoginForm({ portalKey }: { portalKey: PortalKey }) {
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-12">
-      <div className={`pointer-events-none absolute h-[520px] w-[520px] rounded-full bg-gradient-to-br ${portal.accent} opacity-15 blur-3xl`} />
-      <section className="relative grid w-full max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-card shadow-2xl md:grid-cols-[.8fr_1.2fr]">
-        <div className={`hidden bg-gradient-to-br ${portal.accent} p-9 md:block`}><p className="text-xs font-bold uppercase tracking-[.2em] text-white/70">{portal.label} workspace</p><h2 className="mt-5 font-display text-3xl uppercase text-white">Designed around your role.</h2><p className="mt-4 text-sm leading-6 text-white/75">{portal.description}</p><ul className="mt-8 space-y-3">{portalSignals.map((signal) => <li key={signal} className="rounded-xl bg-black/15 px-4 py-3 text-sm font-semibold text-white">✓ {signal}</li>)}</ul></div>
+      <section className="premium-card relative grid w-full max-w-4xl overflow-hidden md:grid-cols-[.8fr_1.2fr]">
+        <div className="auth-panel hidden p-9 md:block"><p className="text-xs font-semibold">{portal.label} workspace</p><h2 className="mt-5 text-3xl font-semibold text-white">{portalKey === "student" ? "Designed for your career journey" : "Designed for your workspace"}</h2><p className="mt-4 text-sm leading-7">{portal.description}</p><ul className="mt-8 space-y-3">{portalSignals.map((signal) => <li key={signal} className="rounded-xl bg-black/15 px-4 py-3 text-sm font-semibold">{signal}</li>)}</ul></div>
         <div className="p-7 sm:p-9">
-        <Link href="/login" className="text-xs font-semibold text-slate-500 transition hover:text-white">← Change portal</Link>
+        <Link href="/login" className="inline-flex min-h-11 items-center text-xs font-semibold text-slate-500 transition hover:text-accent">← Change portal</Link>
         <p className="mt-8 text-xs font-bold uppercase tracking-[.2em] text-cyan-300">{portal.eyebrow}</p>
-        <h1 className="mt-2 font-display text-3xl uppercase tracking-tight text-white">{portal.label} Login</h1>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">{portal.label} login</h1>
         <p className="mt-2 text-sm leading-6 text-slate-400">{portal.description}</p>
         <form action={loginAction} className="mt-8 space-y-4">
           <input type="hidden" name="portal" value={portalKey} />
@@ -38,11 +37,11 @@ export function LoginForm({ portalKey }: { portalKey: PortalKey }) {
           </div>
           <div>
             <label htmlFor="password" className="text-sm font-medium text-slate-300">Password</label>
-            <div className="relative"><input id="password" name="password" type={showPassword ? "text" : "password"} required autoComplete="current-password" placeholder="Your password" className={`${inputClass} pr-12`} /><button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? "Hide password" : "Show password"} className="absolute bottom-3 right-3 text-slate-400 hover:text-white">{showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}</button></div>
+            <div className="relative"><input id="password" name="password" type={showPassword ? "text" : "password"} required autoComplete="current-password" placeholder="Your password" className={`${inputClass} pr-12`} /><button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? "Hide password" : "Show password"} className="absolute bottom-0.5 right-1 flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 hover:text-accent">{showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}</button></div>
           </div>
-          {loginState.error ? <p role="alert" className="rounded-xl border border-rose-400/25 bg-rose-400/10 px-4 py-3 text-sm text-rose-200">{loginState.error}</p> : null}
-          <button type="submit" disabled={loginPending} className={`w-full rounded-xl bg-gradient-to-r ${portal.accent} px-4 py-3 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-60`}>
-            {loginPending ? "Signing in..." : `Sign in to ${portal.label} Portal`}
+          {loginState.error ? <p role="alert" className="rounded-xl border border-danger/25 bg-danger/10 px-4 py-3 text-sm text-danger">{loginState.error}</p> : null}
+          <button type="submit" disabled={loginPending} className="premium-button w-full disabled:opacity-60">
+            {loginPending ? "Signing in..." : `Sign in to ${portal.label.toLowerCase()} workspace`}
           </button>
         </form>
         <p className="mt-6 text-center text-sm text-slate-400">
