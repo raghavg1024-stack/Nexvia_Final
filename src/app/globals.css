@@ -2,18 +2,18 @@
 @plugin "@tailwindcss/typography";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #1e293b;
-  --accent: #1e3a8a;
-  --accent-soft: #e8eef9;
-  --line: #cbd5e1;
-  --card: #ffffff;
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --accent: #2563eb;
+  --accent-soft: #e5efff;
+  --line: #c5d7ee;
+  --card: #eef5ff;
   --cyan: #2563eb;
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
-  --sidebar-text: #334155;
-  --sidebar-muted: #64748b;
+  --sidebar-text: #263a55;
+  --sidebar-muted: #52657d;
   --sidebar-strong: #0f172a;
 }
 
@@ -586,6 +586,177 @@ body::before {
   background: var(--accent);
   color: #ffffff;
   box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 24%, transparent);
+}
+
+:root[data-theme="light"] {
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --accent: #2563eb;
+  --accent-soft: #e5efff;
+  --line: #c5d7ee;
+  --card: #eef5ff;
+  --cyan: #2563eb;
+  --success: #059669;
+  --sidebar-text: #263a55;
+  --sidebar-muted: #52657d;
+  --sidebar-strong: #0f172a;
+  color-scheme: light;
+}
+
+:root[data-theme="light"] body {
+  background:
+    radial-gradient(circle at 10% 0%, rgba(37, 99, 235, 0.09), transparent 30rem),
+    radial-gradient(circle at 92% 12%, rgba(5, 150, 105, 0.07), transparent 25rem),
+    #ffffff;
+}
+
+:root[data-theme="light"] body::before {
+  opacity: 0.025;
+}
+
+:root[data-theme="light"] .glass-panel {
+  border-color: #c5d7ee;
+  background: rgba(239, 246, 255, 0.94);
+  box-shadow: 0 20px 50px rgba(37, 99, 235, 0.1);
+}
+
+:root[data-theme="light"] .bridge-growth [class*="bg-[#0"],
+:root[data-theme="light"] .bridge-growth [class*="bg-[#1"],
+:root[data-theme="light"] .bridge-growth .bg-slate-900,
+:root[data-theme="light"] .bridge-growth .bg-slate-950,
+:root[data-theme="light"] .bridge-growth [class*="bg-slate-900/"],
+:root[data-theme="light"] .bridge-growth [class*="bg-slate-950/"] {
+  background-color: #eaf2ff !important;
+}
+
+:root[data-theme="light"] .bridge-growth [class*="bg-white/"] {
+  background-color: rgba(238, 245, 255, 0.94);
+}
+
+:root[data-theme="light"] .bridge-growth [class*="border-white/"] {
+  border-color: #c5d7ee;
+}
+
+:root[data-theme="light"] .bridge-growth .text-white,
+:root[data-theme="light"] .bridge-growth .text-slate-100,
+:root[data-theme="light"] .bridge-growth .text-slate-200 {
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .bridge-growth .text-slate-300 {
+  color: #263a55;
+}
+
+:root[data-theme="light"] .bridge-growth .text-slate-400,
+:root[data-theme="light"] .bridge-growth .text-slate-500 {
+  color: #52657d;
+}
+
+:root[data-theme="light"] .bridge-growth .prose-invert {
+  --tw-prose-body: #334155;
+  --tw-prose-headings: #0f172a;
+  --tw-prose-lead: #475569;
+  --tw-prose-links: #1d4ed8;
+  --tw-prose-bold: #0f172a;
+  --tw-prose-counters: #52657d;
+  --tw-prose-bullets: #2563eb;
+  --tw-prose-hr: #c5d7ee;
+  --tw-prose-quotes: #1e293b;
+  --tw-prose-quote-borders: #60a5fa;
+  --tw-prose-captions: #52657d;
+  --tw-prose-code: #0f172a;
+  --tw-prose-pre-code: #dbeafe;
+  --tw-prose-pre-bg: #172554;
+}
+
+:root[data-theme="light"] .bridge-growth a.bg-accent,
+:root[data-theme="light"] .bridge-growth button.bg-accent {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+:root[data-theme="light"] .bridge-growth a.bg-accent:hover,
+:root[data-theme="light"] .bridge-growth button.bg-accent:hover {
+  background-color: #1d4ed8;
+}
+
+:root[data-theme="light"] .bridge-growth a.bg-white,
+:root[data-theme="light"] .bridge-growth button.bg-white {
+  border-color: #c5d7ee;
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .bridge-growth a.bg-white:hover,
+:root[data-theme="light"] .bridge-growth button.bg-white:hover {
+  background-color: #eff6ff;
+}
+
+:root[data-theme="light"] .bridge-growth .bg-accent.text-white,
+:root[data-theme="light"] .bridge-growth .hero-cta.text-white,
+:root[data-theme="light"] .bridge-growth [class*="bg-gradient"].text-white,
+:root[data-theme="light"] .bridge-growth [class*="bg-blue"].text-white,
+:root[data-theme="light"] .bridge-growth [class*="bg-violet"].text-white,
+:root[data-theme="light"] .bridge-growth [class*="bg-indigo"].text-white,
+:root[data-theme="light"] .bridge-growth [class*="bg-emerald"].text-white {
+  color: #ffffff;
+}
+
+:root[data-theme="light"] .bridge-growth [class*="bg-emerald-400/"],
+:root[data-theme="light"] .bridge-growth [class*="bg-emerald-500/"] {
+  background-color: rgba(5, 150, 105, 0.11);
+}
+
+:root[data-theme="light"] .bridge-growth [class*="border-emerald"] {
+  border-color: rgba(5, 150, 105, 0.32);
+}
+
+:root[data-theme="light"] .industry-header,
+:root[data-theme="light"] .industry-sidebar,
+:root[data-theme="light"] .industry-footer {
+  background: rgba(255, 255, 255, 0.96) !important;
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .industry-header,
+:root[data-theme="light"] .industry-footer {
+  border-color: #c5d7ee;
+}
+
+:root[data-theme="light"] .industry-header .text-foreground,
+:root[data-theme="light"] .industry-sidebar .text-foreground,
+:root[data-theme="light"] .industry-footer .text-foreground,
+:root[data-theme="light"] .industry-header .text-white,
+:root[data-theme="light"] .industry-sidebar .text-white,
+:root[data-theme="light"] .industry-footer .text-white {
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .industry-header .text-slate-400,
+:root[data-theme="light"] .industry-header .text-slate-500,
+:root[data-theme="light"] .industry-sidebar .text-slate-400,
+:root[data-theme="light"] .industry-sidebar .text-slate-500,
+:root[data-theme="light"] .industry-footer .text-slate-400,
+:root[data-theme="light"] .industry-footer .text-slate-500 {
+  color: #52657d;
+}
+
+:root[data-theme="light"] .industry-header .text-emerald-300,
+:root[data-theme="light"] .industry-sidebar .text-emerald-300,
+:root[data-theme="light"] .industry-footer .text-emerald-300 {
+  color: #047857;
+}
+
+:root[data-theme="light"] input,
+:root[data-theme="light"] textarea,
+:root[data-theme="light"] select {
+  color: #0f172a;
+}
+
+:root[data-theme="light"] input::placeholder,
+:root[data-theme="light"] textarea::placeholder {
+  color: #64748b;
+  opacity: 1;
 }
 
 :root[data-theme="dark"] {
